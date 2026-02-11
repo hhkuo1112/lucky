@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老祖宗~保佑我~</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#F9F1D8',
+                            300: '#E6C986',
+                            400: '#D4AF37',
+                            500: '#C5A028',
+                            600: '#B08D1A',
+                        },
+                        charcoal: {
+                            800: '#2D2D2D',
+                            900: '#1A1A1A',
+                            950: '#0F0F0F'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Cinzel', 'serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'breathe': 'breathe 3s ease-in-out infinite',
+                        'shimmer': 'shimmer 2s linear infinite',
+                        'blur-motion': 'blurMotion 0.1s infinite',
+                        'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                    },
+                    keyframes: {
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 10px rgba(212, 175, 55, 0.3)' },
+                            '50%': { transform: 'scale(1.05)', boxShadow: '0 0 25px rgba(212, 175, 55, 0.6)' },
+                        },
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% center' },
+                            '100%': { backgroundPosition: '200% center' },
+                        },
+                        blurMotion: {
+                            '0%': { filter: 'blur(0px)', transform: 'translateY(0)' },
+                            '50%': { filter: 'blur(2px)', transform: 'translateY(-2px)' },
+                            '100%': { filter: 'blur(0px)', transform: 'translateY(2px)' },
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.5)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at center, #2D2D2D 0%, #0F0F0F 100%);
+            color: #F9F1D8;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1A1A1A;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+
+        .glass-panel {
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(to right, #F9F1D8, #D4AF37, #F9F1D8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shimmer 5s linear infinite;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #B08D1A 100%);
+            color: #0F0F0F;
+            border: none;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .btn-gold:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #D4AF37;
+            color: #D4AF37;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            background: rgba(212, 175, 55, 0.1);
+            color: #F9F1D8;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .winner-card {
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(40, 40, 40, 0.95) 100%);
+            border: 2px solid #D4AF37;
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
+        }
+
+        #drop-zone.dragover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #D4AF37;
+            transform: scale(1.02);
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .winner-grid-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .winner-grid-card.active {
+            background: #D4AF37;
+            color: #000;
+            border-color: #F9F1D8;
+            box-shadow: 0 0 15px #D4AF37;
+            transform: scale(1.05);
+        }
+
+        @keyframes soft-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.5));
+            }
+
+            50% {
+                opacity: 0.8;
+                filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+            }
+        }
+
+        .animate-soft-pulse {
+            animation: soft-pulse 2s ease-in-out infinite;
+        }
+    </style>
+
+</head>
+
+<body class="h-screen w-screen flex flex-col items-center justify-between p-4 relative user-select-none">
+    <!-- Navbar / Header -->
+    <header class="w-full flex justify-between items-center p-4 glass-panel rounded-xl mb-4 z-10 max-w-7xl mx-auto">
+        <div class="flex items-center gap-4">
+            <div
+                class="w-10 h-10 rounded-full bg-gradient-to-br from-gold-200 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/20">
+                <span class="text-xl">🌟</span>
+            </div>
+            <h1 class="text-2xl font-display font-bold gold-gradient-text tracking-wider">榮光煥發抽獎趣<span
+                    class="text-sm font-body opacity-70 ml-2">幸運抽獎</span></h1>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="app.togglePanel('candidates')"
+                class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>👥</span>名單管理
+            </button>
+            <button onclick="app.togglePanel('prizes')"
+                class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>🎁</span>獎項列表
+            </button><button onclick="app.togglePanel('history')"
+                class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>📜</span>中獎紀錄
+            </button><button onclick="app.confirmReset()"
+                class="text-red-400 hover:text-red-300 px-4 py-2 text-sm font-semibold transition-colors">重置
+            </button>
+        </div>
+    </header>
+    <!-- Main Stage -->
+    <main class="flex-grow flex flex-col items-center justify-center w-full max-w-7xl mx-auto relative z-0">
+        <!-- Current Prize Display -->
+        <div id="current-prize-display" class="mb-12 text-center opacity-0 transition-opacity duration-500">
+            <h3 class="text-gold-300 text-lg uppercase tracking-[0.2em] mb-2">正在抽出</h3>
+            <h2
+                class="text-4xl md:text-5xl font-display font-bold text-white drop-shadow-lg mb-2 flex items-baseline justify-center gap-3">
+                <span id="display-prize-name">特等獎</span>
+                <span id="display-prize-qty" class="text-gold-300/80 text-2xl md:text-3xl font-sans font-normal"></span>
+            </h2>
+            <div id="display-sponsor" class="hidden text-gold-300 text-lg md:text-xl font-serif italic tracking-wide">
+                ❤️ 感謝 <span id="sponsor-name" class="text-gold-100 font-bold border-b border-gold-400/50 pb-0.5"></span>
+                熱情贊助 ❤️
+            </div>
+        </div>
+        <!-- The Roller -->
+        <div
+            class="relative w-full max-w-4xl aspect-[21/9] glass-panel rounded-2xl flex items-center justify-center overflow-hidden mb-12 border-gold-400/30">
+            <!-- Background Glow -->
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-transparent via-gold-500/10 to-transparent opacity-50 blur-xl">
+            </div>
+            <!-- Rolling Content -->
+            <div id="roller-container" class="text-center z-10 transform transition-all">
+                <div id="roller-dept"
+                    class="text-gold-300 text-xl md:text-2xl font-light tracking-widest mb-4 uppercase">
+                </div>
+                <div id="roller-name" class="text-5xl md:text-7xl font-display font-bold text-white drop-shadow-2xl">
+                    請稍候...</div>
+            </div>
+            <!-- Spotlight Effect (CSS overlay) -->
+            <div
+                class="absolute inset-0 bg-gradient-to-t from-charcoal-900/50 via-transparent to-charcoal-900/50 pointer-events-none">
+            </div>
+        </div>
+        <!-- Controls -->
+        <div class="flex flex-col gap-6 items-center z-10 w-full">
+            <!-- Draw Button -->
+            <!-- Draw Button -->
+            <button id="draw-btn" onclick="app.startDraw()"
+                class="group relative p-[3px] rounded-full overflow-hidden transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(212,175,55,0.4)] hover:shadow-[0_0_60px_rgba(212,175,55,0.6)]">
+
+                <!-- Animated Gradient Border Background -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 animate-shimmer bg-[length:200%_auto]">
+                </div>
+
+                <!-- Shine effect layer -->
+                <div
+                    class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.4)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-[shine_3s_infinite]">
+                </div>
+
+                <!-- Inner Button Content (In Flow) -->
+                <div
+                    class="relative bg-charcoal-900/90 rounded-full backdrop-blur-sm flex items-center justify-center px-12 py-4 md:px-16 md:py-6">
+                    <span
+                        class="
+                        text-lg md:text-xl lg:text-2xl 
+                        tracking-[0.1em] 
+                        whitespace-nowrap 
+                        font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-100 via-gold-400 to-gold-100 uppercase group-hover:text-white transition-colors">
+                        開始抽獎
+                    </span>
+                </div>
+            </button>
+            <div id="pool-status" class="text-gray-400 text-sm">參加人數: <span id="count-participants"
+                    class="text-gold-400 font-bold">0</span>| 已中獎:
+                <span id="count-winners" class="text-gold-400 font-bold">0</span>
+            </div>
+            <br>
+            <br>
+        </div>
+    </main>
+
+    <footer class="w-full text-center py-2 z-10">
+        <p class="text-gold-400/80 text-xs tracking-[0.2em] font-light">臺北榮民總醫院 資訊室 製作</p>
+        <br>
+    </footer>
+
+    <!-- Candidate Panel -->
+    <div id="panel-candidates"
+        class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel border-l border-gold-400/20 transform translate-x-full transition-transform duration-300 z-50 flex flex-col bg-black/90">
+        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+            <h2 class="text-xl font-display text-gold-300">名單管理</h2><button onclick="app.togglePanel('candidates')"
+                class="text-gray-400 hover:text-white">&times;
+            </button>
+        </div>
+
+        <div class="p-4 border-b border-gray-700 bg-gray-800/30">
+            <!-- Header Stats -->
+            <div class="flex justify-between text-sm text-gray-400 mb-4">
+                <span>目前人數: <span id="panel-count-total" class="text-white">0</span></span>
+                <span>剩餘: <span id="panel-count-remaining" class="text-white">0</span></span>
+            </div>
+
+            <!-- Add Candidate Form -->
+            <div class="mb-4 space-y-2">
+                <div class="flex gap-2">
+                    <input type="text" id="add-cand-name" placeholder="姓名"
+                        class="flex-1 bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:border-gold-400 outline-none">
+                    <input type="text" id="add-cand-dept" placeholder="部門 (選填)"
+                        class="w-1/3 bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:border-gold-400 outline-none">
+                </div>
+                <button onclick="app.addCandidate()" class="w-full btn-gold py-1 rounded text-sm">新增人員</button>
+            </div>
+
+            <!-- Bulk Import -->
+            <div class="flex flex-col gap-3">
+                <details>
+                    <summary class="text-xs text-gold-300 cursor-pointer hover:text-white select-none">批次貼上 (姓名,部門)
+                    </summary>
+                    <div class="mt-2">
+                        <textarea id="csv-input-candidates-panel"
+                            class="w-full bg-gray-800/50 border border-gray-600 rounded p-2 text-white text-xs h-24 mb-2 placeholder-gray-500 focus:border-gold-400 outline-none resize-none"
+                            placeholder="王小明, 工程部&#10;李大安, 業務部"></textarea>
+                        <button onclick="app.parseCandidatesCSV('csv-input-candidates-panel')"
+                            class="w-full btn-outline py-1 rounded text-xs">匯入</button>
+                    </div>
+                </details>
+                <div class="flex gap-2">
+                    <button onclick="app.clearCandidates()"
+                        class="w-full py-1 rounded text-xs bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-900/50">清空名單</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="candidates-list" class="flex-grow overflow-y-auto p-4 space-y-2">
+            <!-- List injected here -->
+        </div>
+    </div>
+    <!-- Winner Overlay (Hidden by default) -->
+    <div id="winner-overlay"
+        class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center hidden opacity-0 transition-opacity duration-500 backdrop-blur-sm">
+        <div class="winner-card p-12 rounded-3xl text-center max-w-3xl w-full mx-4 transform scale-90 transition-transform duration-500"
+            id="winner-card-inner">
+            <h2 class="text-gold-400 text-2xl uppercase tracking-[0.5em] mb-8 font-light">恭喜中獎</h2>
+            <div class="mb-8"><span id="win-dept"
+                    class="inline-block px-4 py-1 rounded-full bg-gold-500/20 text-gold-300 border border-gold-500/30 text-sm tracking-widest uppercase mb-4">部門</span>
+                <h1 id="win-name"
+                    class="text-6xl md:text-8xl font-display font-bold text-white mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
+                    中獎者</h1>
+            </div>
+            <div class="flex flex-col items-center gap-4">
+                <div class="text-gray-400 text-sm uppercase tracking-widest">獲得獎項</div>
+                <div id="win-prize-name" class="text-2xl text-gold-100 font-serif italic">特等獎</div>
+            </div><button onclick="app.closeWinnerOverlay()"
+                class="mt-12 btn-gold px-8 py-3 rounded-full text-lg shadow-lg hover:shadow-gold-500/50">繼續
+            </button>
+        </div>
+    </div>
+    <!-- History Panel -->
+    <div id="panel-history"
+        class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel border-l border-gold-400/20 transform translate-x-full transition-transform duration-300 z-40 flex flex-col">
+        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+            <h2 class="text-xl font-display text-gold-300">中獎紀錄</h2><button onclick="app.togglePanel('history')"
+                class="text-gray-400 hover:text-white">&times;
+            </button>
+        </div>
+        <div id="history-list" class="flex-grow overflow-y-auto p-4 space-y-3">
+            <!-- Items injected here -->
+        </div>
+        <div class="p-4 border-t border-gray-700"><button onclick="app.exportWinners()"
+                class="w-full btn-outline py-2 rounded">匯出中獎名單 (Excel)</button></div>
+    </div>
+    <!-- Prize Panel -->
+    <div id="panel-prizes"
+        class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel border-l border-gold-400/20 transform translate-x-full transition-transform duration-300 z-40 flex flex-col">
+        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+            <h2 class="text-xl font-display text-gold-300">獎項管理</h2><button onclick="app.togglePanel('prizes')"
+                class="text-gray-400 hover:text-white">&times;
+            </button>
+        </div>
+        <div class="p-4 border-b border-gray-700 bg-black/20">
+            <h3 class="text-sm text-gray-400 mb-2 uppercase tracking-wide">新增獎項</h3>
+            <input type="text" id="new-prize-name" placeholder="獎項名稱 (如: 台北東京來回機票)"
+                class="w-full bg-gray-800 border border-gray-600 rounded p-2 mb-2 text-white placeholder-gray-500 focus:border-gold-400 outline-none">
+            <input type="text" id="new-prize-sponsor" placeholder="贊助者 (選填)"
+                class="w-full bg-gray-800 border border-gray-600 rounded p-2 mb-2 text-white placeholder-gray-500 focus:border-gold-400 outline-none">
+            <div class="flex gap-2"><input type="number" id="new-prize-qty" placeholder="數量" value="1" min="1"
+                    class="w-20 bg-gray-800 border border-gray-600 rounded p-2 text-white focus:border-gold-400 outline-none"><button
+                    onclick="app.addPrize()" class="flex-grow btn-gold rounded text-xs">新增</button>
+            </div>
+        </div>
+        <div class="p-4 border-b border-gray-700 bg-black/10">
+            <details>
+                <summary
+                    class="text-xs text-gold-300 cursor-pointer hover:text-white mb-2 list-none flex justify-between select-none">
+                    <span>批次匯入獎項 (CSV)</span>
+                    <span>+</span>
+                </summary>
+                <textarea id="csv-input-prizes"
+                    class="w-full bg-gray-800/50 border border-gray-600 rounded p-2 text-white text-xs h-24 mb-2 placeholder-gray-500 focus:border-gold-400 outline-none resize-none"
+                    placeholder="特等獎, 1, 董事長&#10;普獎, 10"></textarea>
+                <button onclick="app.parsePrizesCSV()"
+                    class="w-full btn-outline py-1 rounded text-xs hover:bg-gold-500/20 transition-colors">匯入獎項</button>
+            </details>
+        </div>
+        <div id="prizes-list" class="flex-grow overflow-y-auto p-4 space-y-3">
+            <!-- Items injected here -->
+        </div>
+    </div>
+    <script>const app = {
+            state: {
+                candidates: [],
+                winners: [],
+                prizes: [],
+                currentPrizeId: null,
+                isDrawing: false
+            }
+
+            ,
+
+            init() {
+                this.loadState();
+
+                // Version check: Clear old English data if present (simple check)
+                // If user has 'Grand Cash Prize' in prizes, it's likely the old version
+                const isOldData = this.state.prizes.some(p => p.name === "Grand Cash Prize");
+
+                if (isOldData) {
+                    this.state.prizes = [];
+                    // Keep candidates if they look custom, but reset winners to be safe?
+                    // Let's just reset prizes and let candidates stay if they were uploaded.
+                    this.saveState();
+                }
+
+                // Start with empty prizes if none exist
+                if (this.state.prizes.length === 0) {
+                    this.state.prizes = []; // No default mock data
+                    this.saveState();
+                }
+
+                // FIX: Auto-select first prize if none selected
+                if (this.state.prizes.length > 0 && !this.state.currentPrizeId) {
+                    this.state.currentPrizeId = this.state.prizes[0].id;
+                    this.saveState();
+                }
+
+                this.updateUI();
+                this.setupEventListeners();
+                this.renderPrizes();
+
+            }
+
+            ,
+
+            loadState() {
+                const saved = localStorage.getItem('luckyDrawState');
+
+                if (saved) {
+                    this.state = {
+                        ...this.state,
+                        ...JSON.parse(saved)
+                    }
+
+                        ;
+                }
+            }
+
+            ,
+
+            saveState() {
+                localStorage.setItem('luckyDrawState', JSON.stringify(this.state));
+                this.updateUI();
+            }
+
+            ,
+
+            setupEventListeners() {
+                // Click outside to close panels
+                document.addEventListener('click', (e) => {
+                    const panels = ['panel-history', 'panel-prizes', 'panel-candidates'];
+                    const buttons = document.querySelectorAll('button[onclick^="app.togglePanel"]');
+                    let isPanelClick = false;
+                    let isButtonClick = false;
+
+                    // Check if click is inside any panel
+                    panels.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el && el.contains(e.target)) isPanelClick = true;
+                    });
+
+                    // Check if click is on a toggle button
+                    buttons.forEach(btn => {
+                        if (btn.contains(e.target)) isButtonClick = true;
+                    });
+
+                    if (!isPanelClick && !isButtonClick) {
+                        panels.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el && !el.classList.contains('translate-x-full')) {
+                                el.classList.add('translate-x-full');
+                            }
+                        });
+                    }
+                });
+            }
+
+            ,
+
+            addCandidate() {
+                const nameInput = document.getElementById('add-cand-name');
+                const deptInput = document.getElementById('add-cand-dept');
+                const name = nameInput.value.trim();
+                const dept = deptInput.value.trim() || "來賓";
+
+                if (!name) {
+                    alert("請輸入姓名！");
+                    return;
+                }
+
+                const exists = this.state.candidates.some(c => c.name === name && c.dept === dept);
+                if (exists) {
+                    alert("此參加者已存在！");
+                    return;
+                }
+
+                this.state.candidates.push({
+                    name,
+                    dept,
+                    id: Math.random().toString(36).substr(2, 9)
+                });
+                this.saveState();
+                this.renderCandidatesList();
+                nameInput.value = '';
+                deptInput.value = '';
+            },
+
+            parseCandidatesCSV(inputId) {
+                const text = document.getElementById(inputId).value;
+                if (!text) {
+                    alert("請貼上 CSV 資料！");
+                    return;
+                }
+                this.parseCandidatesCSVText(text);
+                document.getElementById(inputId).value = ''; // Clear textarea after import
+            },
+
+            parseCandidatesCSVText(text) {
+                if (!text) return alert("檔案內容為空");
+                const lines = text.split(/\r\n|\n/);
+                const newCandidates = [];
+
+                lines.forEach(line => {
+                    const parts = line.split(/,|，|\t/); // Comma, Chinese comma, Tab
+                    if (parts.length >= 1) {
+                        const name = parts[0].trim();
+                        if (!name || name === "姓名" || name === "Name") return;
+                        const dept = parts[1] ? parts[1].trim() : "來賓";
+                        newCandidates.push({
+                            name,
+                            dept,
+                            id: Math.random().toString(36).substr(2, 9)
+                        });
+                    }
+                });
+
+                if (newCandidates.length > 0) {
+                    this.mergeCandidates(newCandidates);
+                } else {
+                    alert("無法解析 CSV 資料，請檢查格式。");
+                }
+            }
+
+            ,
+
+            processData(data) {
+                // Heuristic column detection
+                const newCandidates = data.map(row => {
+                    const keys = Object.keys(row);
+                    const nameKey = keys.find(k => k.toLowerCase().includes('name') || k.includes('姓名')) || keys[0];
+                    const deptKey = keys.find(k => k.toLowerCase().includes('dept') || k.includes('部門') || k.toLowerCase().includes('department')) || keys[1] || "來賓";
+
+                    if (!row[nameKey]) return null;
+
+                    return {
+                        name: String(row[nameKey]).trim(),
+                        dept: String(row[deptKey] || "來賓").trim(),
+                        id: Math.random().toString(36).substr(2, 9)
+                    };
+                }).filter(x => x);
+
+                if (newCandidates.length > 0) {
+                    this.mergeCandidates(newCandidates);
+                } else {
+                    alert("檔案中找不到有效資料。");
+                }
+            },
+
+            mergeCandidates(newCandidates) {
+                let addedCount = 0;
+                let duplicateCount = 0;
+
+                newCandidates.forEach(newItem => {
+                    const exists = this.state.candidates.some(
+                        curr => curr.name === newItem.name && curr.dept === newItem.dept
+                    );
+
+                    // Also check if already won to be safe? (Optional, usually we allow re-import but filter at draw time. 
+                    // But here let's strictly check candidates list)
+
+                    if (!exists) {
+                        this.state.candidates.push(newItem);
+                        addedCount++;
+                    } else {
+                        duplicateCount++;
+                    }
+                });
+
+                if (addedCount > 0) {
+                    this.saveState();
+                    this.renderCandidatesList();
+                    alert(`成功匯入 ${addedCount} 位參加者！\n(忽略 ${duplicateCount} 筆重複資料)`);
+                } else {
+                    alert(`未匯入任何新資料。\n所有 ${duplicateCount} 筆資料皆已存在。`);
+                }
+            },
+
+            renderCandidatesList() {
+                const list = document.getElementById('candidates-list');
+                if (!list) return;
+
+                document.getElementById('panel-count-total').textContent = this.state.candidates.length + this.state.winners.length;
+                document.getElementById('panel-count-remaining').textContent = this.state.candidates.length;
+
+                list.innerHTML = '';
+
+                // Sort by Dept then Name
+                const sorted = [...this.state.candidates].sort((a, b) => a.dept.localeCompare(b.dept) || a.name.localeCompare(b.name));
+
+                sorted.forEach(c => {
+                    const el = document.createElement('div');
+                    el.className = 'flex justify-between items-center p-2 rounded bg-gray-800/50 border border-gray-700 hover:border-gold-400/30 text-xs';
+                    el.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-gold-500/70 font-mono">[${c.dept}]</span>
+                            <span class="text-gray-300 font-bold">${c.name}</span>
+                        </div>
+                        <button onclick="app.removeCandidate('${c.id}')" class="text-red-900 hover:text-red-400 font-bold px-2">&times;</button>
+                    `;
+                    list.appendChild(el);
+                });
+            },
+
+            removeCandidate(id) {
+                if (!confirm('確定刪除此位參加者？')) return;
+                this.state.candidates = this.state.candidates.filter(c => c.id !== id);
+                this.saveState();
+                this.renderCandidatesList();
+            },
+
+            clearCandidates() {
+                if (confirm('確定清空所有未中獎名單？(已中獎者會保留)')) {
+                    this.state.candidates = [];
+                    this.saveState();
+                    this.renderCandidatesList();
+                }
+            },
+
+
+
+
+            toggleSetup() {
+                const setup = document.getElementById('setup-area');
+                setup.classList.toggle('hidden');
+                if (!setup.classList.contains('hidden')) {
+                    setup.scrollIntoView({ behavior: 'smooth' });
+                }
+            },
+
+            togglePanel(name) {
+                const history = document.getElementById('panel-history');
+                const prizes = document.getElementById('panel-prizes');
+                const candidates = document.getElementById('panel-candidates');
+
+                // Close all first
+                [history, prizes, candidates].forEach(p => {
+                    // Safety check if element exists
+                    if (p && p.id !== 'panel-' + name) p.classList.add('translate-x-full');
+                });
+
+                const target = document.getElementById('panel-' + name);
+                if (target) {
+                    target.classList.toggle('translate-x-full');
+                    if (!target.classList.contains('translate-x-full')) {
+                        if (name === 'history') this.renderHistory();
+                        if (name === 'prizes') this.renderPrizes();
+                        if (name === 'candidates') this.renderCandidatesList();
+                    }
+                }
+            },
+
+            updateUI() {
+                // Update counts
+                document.getElementById('count-participants').textContent = this.state.candidates.length;
+                document.getElementById('count-winners').textContent = this.state.winners.length;
+
+                // Update Draw Button State
+                const btn = document.getElementById('draw-btn');
+                const currentPrize = this.state.prizes.find(p => p.id === this.state.currentPrizeId);
+
+                if (this.state.isDrawing) {
+                    btn.disabled = true;
+                    btn.querySelector('span').textContent = "抽獎中...";
+                } else if (!currentPrize || currentPrize.remaining <= 0) {
+                    btn.disabled = true;
+                    btn.querySelector('span').textContent = "本獎項已抽完";
+                } else if (this.state.candidates.length === 0) {
+                    btn.disabled = true;
+                    btn.querySelector('span').textContent = "無參加者";
+                } else {
+                    btn.disabled = false;
+                    btn.querySelector('span').textContent = "開始抽獎";
+                }
+            },
+
+            renderPrizes() {
+                const list = document.getElementById('prizes-list');
+                if (!list) return;
+                list.innerHTML = '';
+
+                this.state.prizes.forEach(p => {
+                    const isSelected = p.id === this.state.currentPrizeId;
+                    const el = document.createElement('div');
+                    el.className = `p-3 rounded border transition-colors flex flex-col gap-2 ${isSelected ? 'bg-gold-500/10 border-gold-400' : 'bg-gray-800 border-gray-700 hover:border-gold-400/50'}`;
+
+                    // Main Info Row
+                    const infoRow = document.createElement('div');
+                    infoRow.className = "flex justify-between items-center cursor-pointer";
+                    infoRow.onclick = (e) => {
+                        // Don't select if clicking buttons
+                        if (e.target.tagName === 'BUTTON') return;
+                        app.selectPrizeForDraw(p.id);
+                    };
+
+                    infoRow.innerHTML = `
+                        <div>
+                            <div class="text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-300'}">${p.name}</div>
+                            ${p.sponsor ? `<div class="text-xs text-gold-400/80 italic mb-0.5">❤️ 感謝 ${p.sponsor}</div>` : ''}
+                            <div class="text-xs text-gray-500">數量: <span id="qty-${p.id}">${p.qty}</span></div>
+                        </div>
+                        ${isSelected ? '<span class="text-gold-400">●</span>' : ''}
+                    `;
+                    el.appendChild(infoRow);
+
+                    // Actions Row (Edit/Delete)
+                    const actionsRow = document.createElement('div');
+                    actionsRow.className = "flex justify-end gap-2 border-t border-gray-700 pt-2 mt-1";
+                    actionsRow.innerHTML = `
+                        <button onclick="app.adjustPrizeQty('${p.id}', 1)" class="text-xs bg-gray-700 px-2 py-1 rounded hover:bg-gray-600 text-white" title="增加數量">+</button>
+                        <button onclick="app.adjustPrizeQty('${p.id}', -1)" class="text-xs bg-gray-700 px-2 py-1 rounded hover:bg-gray-600 text-white" title="減少數量">-</button>
+                        <div class="flex-grow"></div>
+                        <button onclick="app.deletePrize('${p.id}')" class="text-xs text-red-400 hover:text-red-200 px-2 py-1">刪除</button>
+                    `;
+                    el.appendChild(actionsRow);
+
+                    list.appendChild(el);
+                });
+            },
+
+            renderHistory() {
+                const list = document.getElementById('history-list');
+                if (!list) return;
+                list.innerHTML = '';
+
+                if (this.state.winners.length === 0) {
+                    list.innerHTML = '<div class="text-center text-gray-500 py-4">尚無中獎紀錄</div>';
+                    return;
+                }
+
+                // Show latest first
+                [...this.state.winners].reverse().forEach(w => {
+                    const el = document.createElement('div');
+                    el.className = 'glass-panel p-3 rounded border border-gray-700/50 flex justify-between items-center';
+                    el.innerHTML = `
+                        <div>
+                            <div class="text-gold-300 text-xs mb-1">${w.dept}</div>
+                            <div class="text-white font-bold">${w.name}</div>
+                            <div class="text-xs text-gray-400 mt-1">${w.prize}</div>
+                        </div>
+                        <div class="text-xs text-gray-600">${new Date(w.timestamp).toLocaleTimeString()}</div>
+                    `;
+                    list.appendChild(el);
+                });
+
+            }
+
+            ,
+
+            addCandidate() {
+                const nameInput = document.getElementById('add-cand-name');
+                const deptInput = document.getElementById('add-cand-dept');
+                const name = nameInput.value.trim();
+                const dept = deptInput.value.trim() || '來賓';
+
+                if (!name) return alert('請輸入姓名');
+
+                this.mergeCandidates([{
+                    name,
+                    dept,
+                    id: Math.random().toString(36).substr(2, 9)
+                }]);
+
+                nameInput.value = '';
+                deptInput.value = '';
+            },
+
+            addPrize() {
+                const nameInput = document.getElementById('new-prize-name');
+                const sponsorInput = document.getElementById('new-prize-sponsor');
+                const qtyInput = document.getElementById('new-prize-qty');
+
+                const name = nameInput.value.trim();
+                const sponsor = sponsorInput.value.trim();
+                const qty = parseInt(qtyInput.value);
+
+                if (name && qty > 0) {
+                    const newPrize = {
+                        id: Date.now(),
+                        name,
+                        sponsor,
+                        qty,
+                        remaining: qty
+                    };
+                    this.state.prizes.push(newPrize);
+
+                    // Auto select if first
+                    if (this.state.prizes.length === 1) {
+                        this.selectPrizeForDraw(newPrize.id);
+                    } else {
+                        this.saveState();
+                        this.renderPrizes();
+                    }
+
+                    nameInput.value = '';
+                    sponsorInput.value = '';
+                    qtyInput.value = '1';
+                }
+            },
+
+            deletePrize(id) {
+                if (!confirm("確定刪除此獎項？")) return;
+
+                // If current, reset display
+                if (this.state.currentPrizeId == id) {
+                    this.state.currentPrizeId = null;
+                    document.getElementById('display-prize-name').textContent = "準備抽獎";
+                }
+
+                this.state.prizes = this.state.prizes.filter(p => p.id != id);
+
+                // Select another if available
+                if (!this.state.currentPrizeId && this.state.prizes.length > 0) {
+                    this.selectPrizeForDraw(this.state.prizes[0].id);
+                } else {
+                    this.saveState();
+                    this.renderPrizes();
+                    this.updateUI();
+                }
+            },
+
+            adjustPrizeQty(id, delta) {
+                const prize = this.state.prizes.find(p => p.id == id);
+                if (!prize) return;
+
+                const newQty = prize.qty + delta;
+                const newRemaining = prize.remaining + delta;
+
+                if (newQty < 1) return; // Min 1
+                if (newRemaining < 0) return alert("剩餘數量不能小於 0 (已抽出比新總數多)");
+
+                prize.qty = newQty;
+                prize.remaining = newRemaining;
+                this.saveState();
+                this.renderPrizes();
+                this.updateUI();
+            },
+
+            parseCandidatesCSV(inputId = 'csv-input-candidates-panel') {
+                const text = document.getElementById(inputId).value.trim();
+                if (!text) return alert("請輸入內容");
+                this.parseCandidatesCSVText(text);
+            },
+            parsePrizesCSV(inputId = 'csv-input-prizes') {
+                const text = document.getElementById(inputId).value.trim();
+                if (!text) return alert("請輸入內容");
+
+                const lines = text.split('\n');
+                const newPrizes = [];
+
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    const parts = line.split(/,|，|\t/);
+                    if (parts.length >= 1) {
+                        const name = parts[0].trim();
+                        if (name === "獎項" || name === "Prize") return; // Header
+
+                        let qty = 1;
+                        if (parts.length > 1) {
+                            const q = parseInt(parts[1].trim());
+                            if (!isNaN(q) && q > 0) qty = q;
+                        }
+
+                        // Optional Sponsor Column
+                        let sponsor = "";
+                        if (parts.length > 2) {
+                            sponsor = parts[2].trim();
+                        }
+
+                        if (name) {
+                            newPrizes.push({
+                                id: Date.now() + Math.random(),
+                                name,
+                                sponsor,
+                                qty,
+                                remaining: qty
+                            });
+                        }
+                    }
+                });
+
+                if (newPrizes.length > 0) {
+                    if (confirm(`確定要匯入 ${newPrizes.length} 個獎項嗎？這將會取代現有的獎項列表。`)) {
+                        this.state.prizes = newPrizes;
+                        this.state.currentPrizeId = newPrizes[0].id;
+                        this.saveState();
+                        this.renderPrizes();
+                        this.updateUI();
+                        this.resetRollerDisplay(this.state.currentPrizeId);
+                        this.resetRollerDisplay(this.state.currentPrizeId);
+                        document.getElementById(inputId).value = '';
+                    }
+                } else {
+                    alert("無法解析資料。格式：獎項名稱, 數量");
+                }
+            },
+
+            selectPrizeForDraw(id) {
+                this.state.currentPrizeId = id;
+                this.saveState();
+                this.renderPrizes();
+                this.updateUI(); // Updates buttons
+                this.resetRollerDisplay(id); // Reset screen to "Ready"
+            },
+
+            resetRollerDisplay(prizeId) {
+                const prize = this.state.prizes.find(p => p.id === prizeId);
+                const container = document.getElementById('roller-container');
+                const display = document.getElementById('current-prize-display');
+
+                // Show prize title
+                const displayName = document.getElementById('display-prize-name');
+                const displaySponsor = document.getElementById('display-sponsor');
+                const sponsorName = document.getElementById('sponsor-name');
+                const displayQty = document.getElementById('display-prize-qty');
+
+                if (prize) {
+                    displayName.textContent = prize.name;
+                    displayQty.textContent = `x ${prize.remaining}`;
+
+                    // Toggle Sponsor
+                    if (prize.sponsor) {
+                        sponsorName.textContent = prize.sponsor;
+                        displaySponsor.classList.remove('hidden');
+                    } else {
+                        displaySponsor.classList.add('hidden');
+                    }
+
+                    display.classList.remove('opacity-0');
+                    display.classList.add('animate-pop-in');
+                } else {
+                    // Empty state / Ready state
+                    displayName.textContent = "準備抽獎";
+                    displayQty.textContent = "";
+                    displaySponsor.classList.add('hidden');
+                    display.classList.remove('opacity-0');
+                }
+
+                // Determine slots to show (based on remaining or specific request)
+                // We show placeholders for ALL remaining winners of this prize (capped at 20 for UI sanity)
+                const slots = prize ? Math.min(prize.remaining, 20) : 0;
+
+                if (!prize || slots === 0) {
+                    // Reset to initial generic state
+                    container.innerHTML = `
+                        <div id="roller-dept" class="text-gold-300 text-xl md:text-2xl font-light tracking-widest mb-4 uppercase">準備中</div>
+                        <div id="roller-name" class="text-5xl md:text-7xl font-display font-bold text-white drop-shadow-2xl">等候開始</div>
+                     `;
+                    return;
+                }
+
+                if (slots <= 1) {
+                    // Classic Single View
+                    container.innerHTML = `
+                        <div id="roller-dept" class="text-gold-300 text-xl md:text-2xl font-light tracking-widest mb-4 uppercase">準備中...</div>
+                        <div id="roller-name" class="text-5xl md:text-7xl font-display font-bold text-white drop-shadow-2xl">請按開始</div>
+                    `;
+                }
+
+                else {
+                    // Flex View - Better centering and responsiveness
+                    let cardClass = 'w-48 h-48'; // Default Square
+                    let nameSize = 'text-2xl';
+
+                    // Adjust sizing based on density
+                    if (slots > 8) { cardClass = 'w-40 h-32'; nameSize = 'text-xl'; }
+                    if (slots > 15) { cardClass = 'w-32 h-24'; nameSize = 'text-lg'; }
+                    if (slots > 30) { cardClass = 'w-24 h-20'; nameSize = 'text-sm'; }
+
+                    let html = `<div class="flex flex-wrap justify-center gap-4 w-full px-4 overflow-y-auto max-h-[60vh] custom-scrollbar py-4">`;
+
+                    for (let i = 0; i < slots; i++) {
+                        html += `
+                            <div class="winner-grid-card relative group p-1 bg-gradient-to-br from-gold-400/20 to-transparent border border-gold-500/30 rounded-xl overflow-hidden flex flex-col items-center justify-center ${cardClass} transition-all duration-300 hover:scale-105 hover:bg-gold-500/10 shadow-lg" id="slot-${i}">
+                                <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-50"></div>
+                                <div class="text-gold-300/70 text-xs uppercase tracking-wider mb-2 font-light">
+                                    <span class="bg-black/40 px-2 py-0.5 rounded-full border border-gold-500/10">準備中</span>
+                                </div>
+                                <div class="text-white font-bold ${nameSize} truncate w-full text-center px-2 drop-shadow-md tracking-wide">
+                                    ???
+                                </div>
+                            </div>`;
+                    }
+
+                    html += `</div>`;
+                    container.innerHTML = html;
+                }
+            }
+
+            ,
+
+            startDraw() {
+                if (this.state.isDrawing) return;
+                const prize = this.state.prizes.find(p => p.id === this.state.currentPrizeId);
+
+                if (!prize || prize.remaining <= 0 || this.state.candidates.length === 0) {
+                    alert("無法抽獎：請確認獎項名額或參加人數。");
+                    return;
+                }
+
+                // Draw ALL remaining prizes at once
+                const drawCount = prize.remaining; // Draw all remaining
+
+                if (this.state.candidates.length < drawCount) {
+                    alert(`錯誤：剩餘人數 (${this.state.candidates.length}) 不足${drawCount}人。`);
+                    return;
+                }
+
+                this.state.isDrawing = true;
+                document.getElementById('draw-btn').disabled = true;
+
+                // Animate
+                const container = document.getElementById('roller-container');
+                container.classList.add('animate-blur-motion');
+
+                let speed = 50;
+                let duration = 0;
+                const maxDuration = 1000;
+
+                // Animation Loop
+                const roll = () => {
+                    if (drawCount === 1) {
+                        // Single Mode Animation
+                        const randomIdx = Math.floor(Math.random() * this.state.candidates.length);
+                        const c = this.state.candidates[randomIdx];
+                        document.getElementById('roller-name').textContent = c.name;
+                        document.getElementById('roller-dept').textContent = c.dept;
+                    }
+
+                    else {
+
+                        // Grid Mode Animation
+                        for (let i = 0; i < drawCount; i++) {
+                            const randomIdx = Math.floor(Math.random() * this.state.candidates.length);
+                            const c = this.state.candidates[randomIdx];
+
+                            const slot = document.getElementById(`slot-${i}`);
+
+                            if (slot) {
+                                slot.querySelector('div:last-child').textContent = c.name;
+                                slot.querySelector('div:first-child').textContent = c.dept;
+                            }
+                        }
+                    }
+
+                    duration += speed;
+
+                    if (duration < maxDuration) {
+                        if (duration > maxDuration * 0.7) speed += 10;
+                        setTimeout(roll, speed);
+                    }
+
+                    else {
+                        this.finalizeBatchDraw(drawCount);
+                    }
+                }
+
+                    ;
+                roll();
+            }
+
+            ,
+
+            finalizeBatchDraw(count) {
+                const container = document.getElementById('roller-container');
+                container.classList.remove('animate-blur-motion');
+
+                const newWinners = [];
+                const prizeIndex = this.state.prizes.findIndex(p => p.id === this.state.currentPrizeId);
+                const prizeName = this.state.prizes[prizeIndex].name;
+
+                for (let i = 0; i < count; i++) {
+                    // Pick unique random
+                    const winIdx = Math.floor(Math.random() * this.state.candidates.length);
+                    const winner = this.state.candidates[winIdx];
+
+                    // Remove from pool
+                    this.state.candidates.splice(winIdx, 1);
+
+                    // Add to winners
+                    const winRecord = {
+                        ...winner,
+                        prize: prizeName,
+                        timestamp: new Date().toISOString()
+                    }
+
+                        ;
+                    newWinners.push(winRecord);
+                    this.state.winners.push(winRecord);
+                    this.state.prizes[prizeIndex].remaining--;
+                }
+
+                this.saveState();
+
+                // Update UI Slots to final winners
+                if (count === 1) {
+                    // Single UI
+                    const w = newWinners[0];
+                    document.getElementById('roller-name').textContent = w.name;
+                    document.getElementById('roller-dept').textContent = w.dept;
+                    this.showWinnerScreen(newWinners);
+                }
+
+                else {
+
+                    // Grid UI
+                    newWinners.forEach((w, idx) => {
+                        const slot = document.getElementById(`slot-${idx}`);
+                        if (slot) {
+                            slot.querySelector('div:last-child').textContent = w.name;
+                            slot.querySelector('div:first-child').textContent = w.dept;
+                            slot.classList.add('active'); // Gold highlight
+                        }
+                    });
+                    // Show overlay list
+                    this.showWinnerScreen(newWinners);
+                }
+            }
+
+            ,
+
+            showWinnerScreen(winnersList) {
+                const overlay = document.getElementById('winner-overlay');
+                const card = document.getElementById('winner-card-inner');
+
+                // Customize overlay based on single vs multiple
+                if (winnersList.length === 1) {
+                    const w = winnersList[0];
+
+                    card.innerHTML = `
+                        <h2 class="text-gold-400 text-2xl uppercase tracking-[0.5em] mb-8 font-light">恭喜中獎</h2>
+                        <div class="mb-8">
+                            <span class="inline-block px-4 py-1 rounded-full bg-gold-500/20 text-gold-300 border border-gold-500/30 text-sm tracking-widest uppercase mb-4">${w.dept}</span>
+                            <h1 class="text-6xl md:text-8xl font-display font-bold text-white mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">${w.name}</h1>
+                        </div>
+                        <div class="flex flex-col items-center gap-4">
+                            <div class="text-gray-400 text-sm uppercase tracking-widest">獲得獎項</div>
+                            <div class="text-2xl text-gold-100 font-serif italic">${w.prize}</div>
+                        </div>
+                        <button onclick="app.closeWinnerOverlay()" class="mt-12 btn-gold px-8 py-3 rounded-full text-lg shadow-lg hover:shadow-gold-500/50">繼續</button>
+                    `;
+                }
+
+                else {
+                    // Multiple List View
+                    const prizeName = winnersList[0].prize;
+                    let listHtml = `<div class="grid grid-cols-2 dm:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar p-2">`;
+                    winnersList.forEach(w => {
+                        listHtml += `
+                            <div class="bg-gray-800/80 p-3 rounded border border-gold-500/30">
+                                <div class="text-xs text-gold-300 mb-1">${w.dept}</div>
+                                <div class="text-xl font-bold text-white">${w.name}</div>
+                            </div>
+                        `;
+                    });
+                    listHtml += `</div>`;
+
+                    card.innerHTML = `
+                         <h2 class="text-gold-400 text-2xl uppercase tracking-[0.5em] mb-4 font-light">恭喜中獎 (${winnersList.length} 位)</h2>
+                         <div class="text-xl text-gold-100 font-serif italic mb-6">${prizeName}</div>
+                         ${listHtml}
+                         <button onclick="app.closeWinnerOverlay()" class="mt-8 btn-gold px-8 py-3 rounded-full text-lg shadow-lg hover:shadow-gold-500/50">繼續</button>
+                    `;
+                }
+
+                overlay.classList.remove('hidden');
+                // Trigger reflow
+                void overlay.offsetWidth;
+                overlay.classList.remove('opacity-0');
+
+                // Confetti Explosion
+                this.fireConfetti();
+
+                this.state.isDrawing = false;
+                this.updateUI();
+            }
+
+            ,
+
+            closeWinnerOverlay() {
+                const overlay = document.getElementById('winner-overlay');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+
+                    // Check if current prize is exhausted
+                    if (this.state.currentPrizeId) {
+                        const currentPrize = this.state.prizes.find(p => p.id === this.state.currentPrizeId);
+                        if (currentPrize && currentPrize.remaining <= 0) {
+                            // Delete the prize
+                            this.state.prizes = this.state.prizes.filter(p => p.id !== this.state.currentPrizeId);
+                            this.state.currentPrizeId = null;
+
+                            // Reset to Ready Screen
+                            this.resetRollerDisplay();
+                            this.saveState();
+                            this.renderPrizes();
+                            this.updateUI();
+                        }
+                    }
+                }, 500);
+            },
+
+            fireConfetti() {
+                var duration = 3000;
+                var end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: {
+                            x: 0
+                        }
+
+                        ,
+                        colors: ['#D4AF37', '#F9F1D8', '#FFFFFF']
+                    });
+
+                    confetti({
+
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: {
+                            x: 1
+                        }
+
+                        ,
+                        colors: ['#D4AF37', '#F9F1D8', '#FFFFFF']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }
+
+                    ());
+            }
+
+            ,
+
+            confirmReset() {
+                if (confirm("您確定要重置所有資料嗎？這將會清除所有參加者、中獎紀錄與獎項設定。")) {
+                    if (confirm("請再次確認？此動作無法復原。")) {
+                        localStorage.removeItem('luckyDrawState');
+                        location.reload();
+                    }
+                }
+            }
+
+            ,
+
+            exportWinners() {
+                if (this.state.winners.length === 0) return alert("沒有中獎者可匯出。");
+
+                const ws = XLSX.utils.json_to_sheet(this.state.winners);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Winners");
+                XLSX.writeFile(wb, "LuckyDraw_Winners.xlsx");
+            }
+        }
+
+            ;
+        // 監聽鍵盤的邏輯
+        window.addEventListener('keydown', (e) => {
+            // 監聽 Enter 鍵（對應 ESP32 的發送指令）
+            if (e.key === 'Enter') {
+                if (!app.state.isDrawing) {
+                    console.log("實體按鈕觸發！");
+                    app.startDraw();
+                }
+            }
+        });
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => app.init());
+
+        // Debug
+        window.app = app;
+    </script>
+</body>
+
+</html>
