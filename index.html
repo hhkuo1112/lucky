@@ -1288,9 +1288,43 @@ AirPods Pro 2, 15, 院長
             },
 
             confirmReset() {
-                if (confirm("您確定要重置所有資料嗎？這將會清除所有參加者、中獎紀錄與獎項設定。\n(重置後將會重新載入預設的測試資料)")) {
-                    localStorage.removeItem('luckyDrawState');
-                    location.reload();
+                if (confirm("您確定要重置並還原為「預設測試資料」嗎？\n(注意：目前的操作紀錄將會消失)")) {
+                    
+                    // 1. Reset State
+                    this.state = {
+                        candidates: [],
+                        winners: [],
+                        prizes: [],
+                        currentPrizeId: null,
+                        isDrawing: false
+                    };
+
+                    // 2. Load Defaults
+                    console.log("Resetting to defaults...");
+                    this.parseCandidatesCSVText(DEFAULT_CANDIDATES_CSV, false); // false = no alert
+                    this.parsePrizesCSVText(DEFAULT_PRIZES_CSV, false); // false = no alert
+
+                    // 3. Set initial prize
+                    if (this.state.prizes.length > 0) {
+                        this.state.currentPrizeId = this.state.prizes[0].id;
+                    }
+
+                    // 4. Reset Textareas (visual)
+                    const candInput = document.getElementById('csv-input-candidates-panel');
+                    if (candInput) candInput.value = DEFAULT_CANDIDATES_CSV;
+
+                    const prizeInput = document.getElementById('csv-input-prizes');
+                    if (prizeInput) prizeInput.value = DEFAULT_PRIZES_CSV;
+
+                    // 5. Save and Render
+                    this.saveState();
+                    this.updateUI();
+                    this.renderPrizes();
+                    this.renderCandidatesList();
+                    this.renderHistory();
+                    this.resetRollerDisplay(this.state.currentPrizeId);
+                    
+                    alert("已還原預設資料！");
                 }
             },
 
