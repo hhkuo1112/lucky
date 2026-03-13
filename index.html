@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>老祖宗~保佑我~ (測試資料版)</title>
+    <title>榮光煥發抽獎趣</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Inter:wght@100..900&display=swap"
         rel="stylesheet">
 
     <script>
@@ -143,6 +145,12 @@
             box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
         }
 
+        #drop-zone.dragover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #D4AF37;
+            transform: scale(1.02);
+        }
+
         @keyframes shine {
             0% {
                 background-position: 0% 50%;
@@ -166,24 +174,40 @@
             box-shadow: 0 0 15px #D4AF37;
             transform: scale(1.05);
         }
+
+        @keyframes soft-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.5));
+            }
+
+            50% {
+                opacity: 0.8;
+                filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.8));
+            }
+        }
+
+        .animate-soft-pulse {
+            animation: soft-pulse 2s ease-in-out infinite;
+        }
     </style>
 
 </head>
 
-<body class="h-screen w-screen flex flex-col items-center justify-between p-4 relative user-select-none">
+<body class="min-h-screen w-full flex flex-col items-center p-4 relative user-select-none overflow-x-hidden">
     <!-- Navbar / Header -->
     <header class="w-full flex justify-between items-center p-4 glass-panel rounded-xl mb-4 z-10 max-w-7xl mx-auto">
         <div class="flex items-center gap-4">
-            <div
-                class="w-10 h-10 rounded-full bg-gradient-to-br from-gold-200 to-gold-600 flex items-center justify-center shadow-lg shadow-gold-500/20">
-                <span class="text-xl">🌟</span>
-            </div>
+            <img src="https://wd.vghtpe.gov.tw/medu/files/%E8%87%BA%E5%8C%97%E6%A6%AE%E6%B0%91%E7%B8%BD%E9%86%AB%E9%99%A2LOGO_%E7%99%BD%E5%BA%95.jpg"
+                style="width: 24px; height: 24px; object-fit: cover; object-position: center; border: 1px solid #ccc; vertical-align: middle; border-radius: 4px;">
             <h1 class="text-2xl font-display font-bold gold-gradient-text tracking-wider">榮光煥發抽獎趣<span
                     class="text-sm font-body opacity-70 ml-2">幸運抽獎</span></h1>
         </div>
         <div class="flex gap-4">
             <button onclick="app.togglePanel('candidates')"
-                class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>👥</span>名單管理
+                class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>👥</span>人員名單
             </button>
             <button onclick="app.togglePanel('prizes')"
                 class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>🎁</span>獎項列表
@@ -191,6 +215,10 @@
                 class="btn-outline px-4 py-2 rounded-lg text-sm font-semibold tracking-wide flex items-center gap-2"><span>📜</span>中獎紀錄
             </button><button onclick="app.confirmReset()"
                 class="text-red-400 hover:text-red-300 px-4 py-2 text-sm font-semibold transition-colors">重置
+            </button>
+            <button id="auth-btn" onclick="app.requestSaveAccess()" title="前置授權：設定存檔位置 (不會影響抽獎)"
+                class="px-3 py-1.5 rounded-full text-xs font-bold tracking-wide flex items-center gap-1 transition-all bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 animate-pulse cursor-pointer">
+                ❗ 點此授權存檔位置
             </button>
         </div>
     </header>
@@ -211,7 +239,7 @@
         </div>
         <!-- The Roller -->
         <div
-            class="relative w-full max-w-4xl aspect-[21/9] glass-panel rounded-2xl flex items-center justify-center overflow-hidden mb-12 border-gold-400/30">
+            class="relative w-full max-w-6xl aspect-[21/9] glass-panel rounded-2xl flex items-center justify-center overflow-hidden mb-12 border-gold-400/30">
             <!-- Background Glow -->
             <div
                 class="absolute inset-0 bg-gradient-to-r from-transparent via-gold-500/10 to-transparent opacity-50 blur-xl">
@@ -231,6 +259,7 @@
         </div>
         <!-- Controls -->
         <div class="flex flex-col gap-6 items-center z-10 w-full">
+            <!-- Draw Button -->
             <!-- Draw Button -->
             <button id="draw-btn" onclick="app.startDraw()"
                 class="group relative p-[3px] rounded-full overflow-hidden transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(212,175,55,0.4)] hover:shadow-[0_0_60px_rgba(212,175,55,0.6)]">
@@ -267,55 +296,58 @@
         </div>
     </main>
 
-    <footer class="w-full text-center py-2 z-10">
-        <p class="text-gold-400/80 text-xs tracking-[0.2em] font-light">臺北榮民總醫院 資訊室 製作</p>
-        <br>
+    <footer class="w-full text-center py-6 mt-auto z-10">
+        <p class="text-gold-300 text-sm tracking-[0.2em] font-bold drop-shadow">臺北榮民總醫院 資訊室 製作</p>
     </footer>
 
     <!-- Candidate Panel -->
     <div id="panel-candidates"
-        class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel border-l border-gold-400/20 transform translate-x-full transition-transform duration-300 z-50 flex flex-col bg-black/90">
-        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
-            <h2 class="text-xl font-display text-gold-300">名單管理</h2><button onclick="app.togglePanel('candidates')"
-                class="text-gray-400 hover:text-white">&times;
+        class="fixed inset-y-0 right-0 w-full md:w-[28rem] bg-[#FDFBF7] border-l border-gold-300/50 transform translate-x-full transition-transform duration-300 z-50 flex flex-col shadow-2xl text-charcoal-900 font-sans">
+        <div class="p-6 border-b border-gold-300/30 flex justify-between items-center bg-[#FDFBF7]">
+            <h2 class="text-2xl font-bold font-display text-charcoal-900">人員名單</h2><button
+                onclick="app.togglePanel('candidates')"
+                class="text-gray-500 hover:text-charcoal-900 text-2xl font-bold">&times;
             </button>
         </div>
 
-        <div class="p-4 border-b border-gray-700 bg-gray-800/30">
+        <div class="p-4 border-b border-gold-300/30 bg-[#F9F7F1]">
             <!-- Header Stats -->
-            <div class="flex justify-between text-sm text-gray-400 mb-4">
-                <span>目前人數: <span id="panel-count-total" class="text-white">0</span></span>
-                <span>剩餘: <span id="panel-count-remaining" class="text-white">0</span></span>
+            <div class="flex justify-between items-center text-base text-gray-600 mb-4 font-bold">
+                <div>目前人數: <span id="panel-count-total" class="text-gold-600">0</span>
+                    <span class="ml-2">剩餘:</span> <span id="panel-count-remaining" class="text-gold-600">0</span>
+                </div>
+                <button onclick="app.clearCandidates()"
+                    class="text-xs bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 font-bold py-1 px-3 rounded-full border border-red-200 transition-colors">清空</button>
             </div>
 
             <!-- Add Candidate Form -->
-            <div class="mb-4 space-y-2">
+            <div class="mb-4 space-y-3">
                 <div class="flex gap-2">
                     <input type="text" id="add-cand-name" placeholder="姓名"
-                        class="flex-1 bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:border-gold-400 outline-none">
-                    <input type="text" id="add-cand-dept" placeholder="部門 (選填)"
-                        class="w-1/3 bg-gray-800 border border-gray-600 rounded p-2 text-white text-sm focus:border-gold-400 outline-none">
+                        class="flex-1 bg-white border border-gold-200 rounded p-2 text-charcoal-900 text-base focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none w-1/2">
+                    <input type="text" id="add-cand-empid" placeholder="員工證號"
+                        class="flex-1 bg-white border border-gold-200 rounded p-2 text-charcoal-900 text-base focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none w-1/2">
                 </div>
-                <button onclick="app.addCandidate()" class="w-full btn-gold py-1 rounded text-sm">新增人員</button>
+                <input type="text" id="add-cand-dept" placeholder="部門"
+                    class="w-full bg-white border border-gold-200 rounded p-2 text-charcoal-900 text-base focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none">
+                <button onclick="app.addCandidate()"
+                    class="w-full btn-gold py-2 rounded text-base transition-colors shadow-md">新增人員</button>
             </div>
 
             <!-- Bulk Import -->
             <div class="flex flex-col gap-3">
-                <details open>
-                    <summary class="text-xs text-gold-300 cursor-pointer hover:text-white select-none">批次貼上 (姓名,部門)
+                <details>
+                    <summary class="text-sm text-gold-600 font-bold cursor-pointer hover:text-gold-700 select-none">
+                        批次貼上 (姓名,員工證號,部門)
                     </summary>
-                    <div class="mt-2">
+                    <div class="mt-2 text-base">
                         <textarea id="csv-input-candidates-panel"
-                            class="w-full bg-gray-800/50 border border-gray-600 rounded p-2 text-white text-xs h-32 mb-2 placeholder-gray-500 focus:border-gold-400 outline-none resize-none"
-                            placeholder="王小明, 工程部&#10;李大安, 業務部"></textarea>
+                            class="w-full bg-white border border-gold-200 rounded p-2 text-charcoal-900 text-sm h-28 mb-2 placeholder-gray-400 focus:border-gold-500 outline-none resize-none leading-relaxed"
+                            placeholder="王小明, 000001, 醫企部&#10;李大安, 0, 總務室"></textarea>
                         <button onclick="app.parseCandidatesCSV('csv-input-candidates-panel')"
-                            class="w-full btn-outline py-1 rounded text-xs">匯入</button>
+                            class="w-full bg-transparent border border-gold-400 text-gold-600 hover:bg-gold-50 font-bold py-2 rounded text-sm transition-colors">匯入名單</button>
                     </div>
                 </details>
-                <div class="flex gap-2">
-                    <button onclick="app.clearCandidates()"
-                        class="w-full py-1 rounded text-xs bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-900/50">清空名單</button>
-                </div>
             </div>
         </div>
 
@@ -326,7 +358,7 @@
     <!-- Winner Overlay (Hidden by default) -->
     <div id="winner-overlay"
         class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center hidden opacity-0 transition-opacity duration-500 backdrop-blur-sm">
-        <div class="winner-card p-12 rounded-3xl text-center max-w-3xl w-full mx-4 transform scale-90 transition-transform duration-500"
+        <div class="winner-card p-12 rounded-3xl text-center max-w-5xl md:max-w-6xl w-full mx-4 transform scale-90 transition-transform duration-500"
             id="winner-card-inner">
             <h2 class="text-gold-400 text-2xl uppercase tracking-[0.5em] mb-8 font-light">恭喜中獎</h2>
             <div class="mb-8"><span id="win-dept"
@@ -345,251 +377,141 @@
     </div>
     <!-- History Panel -->
     <div id="panel-history"
-        class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel border-l border-gold-400/20 transform translate-x-full transition-transform duration-300 z-40 flex flex-col">
-        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
-            <h2 class="text-xl font-display text-gold-300">中獎紀錄</h2><button onclick="app.togglePanel('history')"
-                class="text-gray-400 hover:text-white">&times;
+        class="fixed inset-y-0 right-0 w-full md:w-[28rem] bg-[#FDFBF7] border-l border-gold-300/50 transform translate-x-full transition-transform duration-300 z-40 flex flex-col shadow-2xl text-charcoal-900 font-sans">
+        <div class="p-6 border-b border-gold-300/30 flex justify-between items-center bg-[#FDFBF7]">
+            <h2 class="text-2xl font-bold font-display text-charcoal-900">中獎紀錄</h2><button
+                onclick="app.togglePanel('history')"
+                class="text-gray-500 hover:text-charcoal-900 text-2xl font-bold">&times;
             </button>
         </div>
         <div id="history-list" class="flex-grow overflow-y-auto p-4 space-y-3">
             <!-- Items injected here -->
         </div>
-        <div class="p-4 border-t border-gray-700"><button onclick="app.exportWinners()"
-                class="w-full btn-outline py-2 rounded">匯出中獎名單 (Excel)</button></div>
+        <div class="p-4 border-t border-gold-300/30 bg-[#F9F7F1]"><button onclick="app.exportWinners()"
+                class="w-full btn-gold shadow-md font-bold py-3 rounded text-base transition-colors">匯出中獎名單
+                (Excel)</button></div>
     </div>
     <!-- Prize Panel -->
     <div id="panel-prizes"
-        class="fixed inset-y-0 right-0 w-full md:w-96 glass-panel border-l border-gold-400/20 transform translate-x-full transition-transform duration-300 z-40 flex flex-col">
-        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
-            <h2 class="text-xl font-display text-gold-300">獎項管理</h2><button onclick="app.togglePanel('prizes')"
-                class="text-gray-400 hover:text-white">&times;
+        class="fixed inset-y-0 right-0 w-full md:w-[28rem] bg-[#FDFBF7] border-l border-gold-300/50 transform translate-x-full transition-transform duration-300 z-40 flex flex-col shadow-2xl text-charcoal-900 font-sans">
+        <div class="p-6 border-b border-gold-300/30 flex justify-between items-center bg-[#FDFBF7]">
+            <h2 class="text-2xl font-bold font-display text-charcoal-900">獎項管理</h2><button
+                onclick="app.togglePanel('prizes')"
+                class="text-gray-500 hover:text-charcoal-900 text-2xl font-bold">&times;
             </button>
         </div>
-        <div class="p-4 border-b border-gray-700 bg-black/20">
-            <h3 class="text-sm text-gray-400 mb-2 uppercase tracking-wide">新增獎項</h3>
-            <input type="text" id="new-prize-name" placeholder="獎項名稱 (如: 台北東京來回機票)"
-                class="w-full bg-gray-800 border border-gray-600 rounded p-2 mb-2 text-white placeholder-gray-500 focus:border-gold-400 outline-none">
-            <input type="text" id="new-prize-sponsor" placeholder="贊助者 (選填)"
-                class="w-full bg-gray-800 border border-gray-600 rounded p-2 mb-2 text-white placeholder-gray-500 focus:border-gold-400 outline-none">
+        <div class="p-4 border-b border-gold-300/30 bg-[#F9F7F1]">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-base text-gray-700 font-bold tracking-wide">新增獎項</h3>
+                <button onclick="app.clearPrizes()"
+                    class="text-xs bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 font-bold py-1 px-3 rounded-full border border-red-200 transition-colors">清空全部</button>
+            </div>
+            <input type="text" id="new-prize-name" placeholder="獎項名稱"
+                class="w-full bg-white border border-gold-200 rounded p-2 mb-2 text-charcoal-900 text-base placeholder-gray-400 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none">
+            <input type="text" id="new-prize-sponsor" placeholder="贊助者(選填)"
+                class="w-full bg-white border border-gold-200 rounded p-2 mb-2 text-charcoal-900 text-base placeholder-gray-400 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none">
             <div class="flex gap-2"><input type="number" id="new-prize-qty" placeholder="數量" value="1" min="1"
-                    class="w-20 bg-gray-800 border border-gray-600 rounded p-2 text-white focus:border-gold-400 outline-none"><button
-                    onclick="app.addPrize()" class="flex-grow btn-gold rounded text-xs">新增</button>
+                    class="w-24 bg-white border border-gold-200 rounded p-2 text-charcoal-900 text-base focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"><button
+                    onclick="app.addPrize()"
+                    class="flex-grow btn-gold rounded text-base transition-colors shadow-md font-bold">新增獎項</button>
             </div>
         </div>
-        <div class="p-4 border-b border-gray-700 bg-black/10">
-            <details open>
-                <summary
-                    class="text-xs text-gold-300 cursor-pointer hover:text-white mb-2 list-none flex justify-between select-none">
-                    <span>批次匯入獎項 (CSV)</span>
-                    <span>+</span>
+        <div class="p-4 border-b border-gold-300/30 bg-[#FDFBF7] flex flex-col gap-3">
+            <details>
+                <summary class="text-sm text-gold-600 font-bold cursor-pointer hover:text-gold-700 select-none">
+                    批次貼上 (獎項名稱,數量,贊助者)
                 </summary>
                 <textarea id="csv-input-prizes"
-                    class="w-full bg-gray-800/50 border border-gray-600 rounded p-2 text-white text-xs h-32 mb-2 placeholder-gray-500 focus:border-gold-400 outline-none resize-none"
-                    placeholder="特等獎, 1, 董事長&#10;普獎, 10"></textarea>
+                    class="w-full bg-white border border-gold-200 rounded p-2 text-charcoal-900 text-sm h-28 mb-2 placeholder-gray-400 focus:border-gold-500 outline-none resize-none"
+                    placeholder="iphone17, 1, OO董事長&#10;百貨公司禮券, 10"></textarea>
                 <button onclick="app.parsePrizesCSV()"
-                    class="w-full btn-outline py-1 rounded text-xs hover:bg-gold-500/20 transition-colors">匯入獎項</button>
+                    class="w-full bg-transparent border border-gold-400 text-gold-600 hover:bg-gold-50 font-bold py-2 rounded text-sm transition-colors">匯入獎項</button>
             </details>
         </div>
         <div id="prizes-list" class="flex-grow overflow-y-auto p-4 space-y-3">
             <!-- Items injected here -->
         </div>
+        <div id="exhausted-container-wrapper"
+            class="hidden border-t border-gold-300/30 bg-[#F9F7F1] pb-safe z-10 w-full shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+        </div>
     </div>
-    <script>
-        // Default Data Constants
-        const DEFAULT_CANDIDATES_CSV = `陳建宏,資訊科
-陳建宏,資訊科
-林志強,護理部
-黃雅雯,醫療組
-張淑君,行政處
-李冠廷,藥劑部
-王柏翰,檢驗科
-吳婉婷,門診部
-劉宗憲,企劃組
-蔡家豪,資訊科
-楊佩珊,護理部
-趙子龍,醫療組
-周杰明,行政處
-徐若雲,藥劑部
-孫建志,檢驗科
-馬文才,門診部
-朱立安,企劃組
-郭欣儀,資訊科
-洪子傑,護理部
-邱明輝,醫療組
-蘇美惠,行政處
-葉俊男,藥劑部
-莊雅筑,檢驗科
-呂冠宇,門診部
-何承翰,企劃組
-羅志遠,資訊科
-彭曉芬,護理部
-沈威廷,醫療組
-蕭麗華,行政處
-方俊傑,藥劑部
-蔣孟廷,檢驗科
-馬嘉宏,門診部
-成家偉,企劃組
-柯怡如,資訊科
-范雅琳,護理部
-汪志文,醫療組
-盧承勳,行政處
-鍾秀琴,藥劑部
-傅冠智,檢驗科
-戴淑華,門診部
-魏嘉佑,企劃組
-田詩涵,資訊科
-薛宗翰,護理部
-姚欣恬,醫療組
-侯承恩,行政處
-段曉彤,藥劑部
-龔志強,檢驗科
-卓佩珊,門診部
-任家緯,企劃組
-黎雅晴,資訊科
-曾大維,護理部
-倪曉華,醫療組
-柳志勳,行政處
-姜明遠,藥劑部
-崔德禮,檢驗科
-秦奕勳,門診部
-莫家弘,企劃組
-連俊男,資訊科
-溫依琳,護理部
-藍丞琳,醫療組
-嚴惠妹,行政處
-顧敬騰,藥劑部
-裴紫棋,檢驗科
-單文祥,門診部
-包崇綠,企劃組
-徐佳玲,資訊科
-韋禮平,護理部
-龍廣仲,醫療組
-邵和弦,行政處
-萬宥嘉,藥劑部
-苗怡良,檢驗科
-金榮浩,門診部
-利興哲,企劃組
-尤爾宣,資訊科
-簡子琪,護理部
-婁峻傑,醫療組
-唐嘉爾,行政處
-俞亞綸,藥劑部
-畢書華,檢驗科
-祝家明,門診部
-冉小鬼,企劃組
-涂坤達,資訊科
-邵智源,護理部
-謝承達,醫療組
-翁婉妮,行政處
-紀泱泱,藥劑部
-游瑪利,檢驗科
-左柏昇,門診部
-饒效舜,企劃組
-耿恰恰,資訊科
-苗可心,護理部
-王彩華,醫療組
-常時豐,行政處
-白小瑄,藥劑部
-康永平,檢驗科
-陶晶晶,門診部
-夏子佼,企劃組
-曾國平,資訊科
-胡自強,護理部
-吳宗仁,醫療組
-藍心妤,行政處`;
-
-        const DEFAULT_PRIZES_CSV = `現金 10萬元, 1, XX企業
-iPhone 16 Pro Max, 2, XX企業
-MacBook Pro 14, 3, OOO賢伉儷
-Dyson V15 吸塵器, 5, 
-iPad Pro 11, 5, OO企業
-Apple Watch Ultra, 10, 
-AirPods Pro 2, 15, 院長
-全聯禮券 1千元, 20, 
-超商禮物卡 500, 20,`;
-
-        const app = {
+    <script>const app = {
             state: {
                 candidates: [],
                 winners: [],
                 prizes: [],
                 currentPrizeId: null,
                 isDrawing: false
-            },
+            }
+
+            ,
+
+            fileHandle: null,
 
             init() {
                 this.loadState();
+                this.state.isDrawing = false;
 
-                // Pre-fill TextAreas
-                const candInput = document.getElementById('csv-input-candidates-panel');
-                if (candInput) candInput.value = DEFAULT_CANDIDATES_CSV;
+                // Version check: Clear old English data if present (simple check)
+                // If user has 'Grand Cash Prize' in prizes, it's likely the old version
+                const isOldData = this.state.prizes.some(p => p.name === "Grand Cash Prize");
 
-                const prizeInput = document.getElementById('csv-input-prizes');
-                if (prizeInput) prizeInput.value = DEFAULT_PRIZES_CSV;
-
-                // Auto-load default data if state is empty
-                if (this.state.candidates.length === 0 && this.state.winners.length === 0) {
-                    console.log("Empty candidates, loading default data...");
-                    this.parseCandidatesCSVText(DEFAULT_CANDIDATES_CSV, false); // false = silent mode
+                if (isOldData) {
+                    this.state.prizes = [];
+                    // Keep candidates if they look custom, but reset winners to be safe?
+                    // Let's just reset prizes and let candidates stay if they were uploaded.
+                    this.saveState();
                 }
 
+                // Start with empty prizes if none exist
                 if (this.state.prizes.length === 0) {
-                    console.log("Empty prizes, loading default data...");
-                    this.parsePrizesCSVText(DEFAULT_PRIZES_CSV, false); // false = silent mode
-                }
-
-                // FIX: Auto-select first prize if none selected
-                if (this.state.prizes.length > 0 && !this.state.currentPrizeId) {
-                    this.state.currentPrizeId = this.state.prizes[0].id;
+                    this.state.prizes = []; // No default mock data
                     this.saveState();
                 }
 
                 this.updateUI();
                 this.setupEventListeners();
                 this.renderPrizes();
-                this.renderCandidatesList(); // Ensure list is rendered
-                this.resetRollerDisplay(this.state.currentPrizeId);
-            },
+
+                if (this.state.currentPrizeId) {
+                    this.resetRollerDisplay(this.state.currentPrizeId);
+                } else {
+                    this.resetRollerDisplay();
+                }
+            }
+
+            ,
 
             loadState() {
                 const saved = localStorage.getItem('luckyDrawState');
+
                 if (saved) {
-                    try {
-                        this.state = {
-                            ...this.state,
-                            ...JSON.parse(saved)
-                        };
-                    } catch (e) {
-                        console.error("Failed to load state", e);
+                    this.state = {
+                        ...this.state,
+                        ...JSON.parse(saved)
                     }
+
+                        ;
                 }
-            },
+            }
+
+            ,
 
             saveState() {
                 localStorage.setItem('luckyDrawState', JSON.stringify(this.state));
                 this.updateUI();
-            },
+            }
+
+            ,
 
             setupEventListeners() {
                 // Click outside to close panels
                 document.addEventListener('click', (e) => {
                     const panels = ['panel-history', 'panel-prizes', 'panel-candidates'];
-                    const buttons = document.querySelectorAll('button[onclick^="app.togglePanel"]');
-                    let isPanelClick = false;
-                    let isButtonClick = false;
+                    const mainStage = document.querySelector('main');
+                    const header = document.querySelector('header');
 
-                    // Check if click is inside any panel
-                    panels.forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el && el.contains(e.target)) isPanelClick = true;
-                    });
-
-                    // Check if click is on a toggle button
-                    buttons.forEach(btn => {
-                        if (btn.contains(e.target)) isButtonClick = true;
-                    });
-
-                    if (!isPanelClick && !isButtonClick) {
+                    if (mainStage && mainStage.contains(e.target)) {
                         panels.forEach(id => {
                             const el = document.getElementById(id);
                             if (el && !el.classList.contains('translate-x-full')) {
@@ -598,34 +520,33 @@ AirPods Pro 2, 15, 院長
                         });
                     }
                 });
-            },
+            }
+
+            ,
 
             addCandidate() {
                 const nameInput = document.getElementById('add-cand-name');
                 const deptInput = document.getElementById('add-cand-dept');
+                const empidInput = document.getElementById('add-cand-empid');
                 const name = nameInput.value.trim();
-                const dept = deptInput.value.trim() || "來賓";
+                const dept = deptInput.value.trim();
+                const empId = empidInput.value.trim();
 
-                if (!name) {
-                    alert("請輸入姓名！");
+                if (!name || !dept || !empId) {
+                    alert("姓名、部門、員工證號皆為必填！");
                     return;
                 }
 
-                const exists = this.state.candidates.some(c => c.name === name && c.dept === dept);
-                if (exists) {
-                    alert("此參加者已存在！");
-                    return;
-                }
-
-                this.state.candidates.push({
+                this.mergeCandidates([{
                     name,
                     dept,
+                    empId,
                     id: Math.random().toString(36).substr(2, 9)
-                });
-                this.saveState();
-                this.renderCandidatesList();
+                }]);
+
                 nameInput.value = '';
                 deptInput.value = '';
+                empidInput.value = '';
             },
 
             parseCandidatesCSV(inputId) {
@@ -634,44 +555,78 @@ AirPods Pro 2, 15, 院長
                     alert("請貼上 CSV 資料！");
                     return;
                 }
-                this.parseCandidatesCSVText(text, true); // true = show alert
+                this.parseCandidatesCSVText(text);
+                document.getElementById(inputId).value = ''; // Clear textarea after import
             },
 
-            parseCandidatesCSVText(text, showAlert = true) {
-                if (!text) return;
+            parseCandidatesCSVText(text) {
+                if (!text) return alert("檔案內容為空");
                 const lines = text.split(/\r\n|\n/);
                 const newCandidates = [];
 
                 lines.forEach(line => {
-                    if (!line.trim()) return;
                     const parts = line.split(/,|，|\t/); // Comma, Chinese comma, Tab
-                    if (parts.length >= 1) {
+                    if (parts.length >= 3) {
                         const name = parts[0].trim();
                         if (!name || name === "姓名" || name === "Name") return;
-                        const dept = parts[1] ? parts[1].trim() : "來賓";
-                        newCandidates.push({
-                            name,
-                            dept,
-                            id: Math.random().toString(36).substr(2, 9)
-                        });
+                        const empId = parts[1].trim();
+                        const dept = parts[2].trim();
+                        if (name && dept && empId) {
+                            newCandidates.push({
+                                name,
+                                dept,
+                                empId,
+                                id: Math.random().toString(36).substr(2, 9)
+                            });
+                        }
                     }
                 });
 
                 if (newCandidates.length > 0) {
-                    this.mergeCandidates(newCandidates, showAlert);
-                } else if (showAlert) {
-                    alert("無法解析 CSV 資料，請檢查格式。");
+                    this.mergeCandidates(newCandidates);
+                } else {
+                    alert("無法解析 CSV 資料，請檢查格式 (姓名,員工證號,部門 皆為必填)。");
+                }
+            }
+
+            ,
+
+            processData(data) {
+                // Heuristic column detection
+                const newCandidates = data.map(row => {
+                    const keys = Object.keys(row);
+                    const nameKey = keys.find(k => k.toLowerCase().includes('name') || k.includes('姓名')) || keys[0];
+                    const deptKey = keys.find(k => k.toLowerCase().includes('dept') || k.includes('部門') || k.toLowerCase().includes('department')) || keys[1];
+                    const empIdKey = keys.find(k => k.toLowerCase().includes('id') || k.includes('員工證') || k.includes('證號') || k.includes('編號')) || keys[2];
+
+                    if (!row[nameKey] || !row[deptKey] || !row[empIdKey]) return null;
+
+                    return {
+                        name: String(row[nameKey]).trim(),
+                        dept: String(row[deptKey]).trim(),
+                        empId: String(row[empIdKey]).trim(),
+                        id: Math.random().toString(36).substr(2, 9)
+                    };
+                }).filter(x => x);
+
+                if (newCandidates.length > 0) {
+                    this.mergeCandidates(newCandidates);
+                } else {
+                    alert("檔案中找不到有效資料 (姓名, 部門, 員工證號 皆為必填)。");
                 }
             },
 
-            mergeCandidates(newCandidates, showAlert = true) {
+            mergeCandidates(newCandidates) {
                 let addedCount = 0;
                 let duplicateCount = 0;
 
                 newCandidates.forEach(newItem => {
                     const exists = this.state.candidates.some(
-                        curr => curr.name === newItem.name && curr.dept === newItem.dept
+                        curr => curr.name === newItem.name && curr.empId === newItem.empId
                     );
+
+                    // Also check if already won to be safe? (Optional, usually we allow re-import but filter at draw time. 
+                    // But here let's strictly check candidates list)
 
                     if (!exists) {
                         this.state.candidates.push(newItem);
@@ -684,8 +639,8 @@ AirPods Pro 2, 15, 院長
                 if (addedCount > 0) {
                     this.saveState();
                     this.renderCandidatesList();
-                    if (showAlert) alert(`成功匯入 ${addedCount} 位參加者！\n(忽略 ${duplicateCount} 筆重複資料)`);
-                } else if (showAlert) {
+                    alert(`成功匯入 ${addedCount} 位參加者！\n(忽略 ${duplicateCount} 筆重複資料)`);
+                } else {
                     alert(`未匯入任何新資料。\n所有 ${duplicateCount} 筆資料皆已存在。`);
                 }
             },
@@ -704,13 +659,14 @@ AirPods Pro 2, 15, 院長
 
                 sorted.forEach(c => {
                     const el = document.createElement('div');
-                    el.className = 'flex justify-between items-center p-2 rounded bg-gray-800/50 border border-gray-700 hover:border-gold-400/30 text-xs';
+                    el.className = 'flex justify-between items-center p-3 rounded bg-[#FDFBF7] border border-gold-200 shadow-sm hover:border-gold-300 text-base';
                     el.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="text-gold-500/70 font-mono">[${c.dept}]</span>
-                            <span class="text-gray-300 font-bold">${c.name}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-gold-600 font-mono font-bold">[${c.dept}]</span>
+                            <span class="text-charcoal-900 font-bold text-lg">${c.name}</span>
+                            <span class="text-gray-500 font-mono">(${c.empId})</span>
                         </div>
-                        <button onclick="app.removeCandidate('${c.id}')" class="text-red-900 hover:text-red-400 font-bold px-2">&times;</button>
+                        <button onclick="app.removeCandidate('${c.id}')" class="text-gray-400 hover:text-red-500 font-bold px-2 py-1 transition-colors text-xl">&times;</button>
                     `;
                     list.appendChild(el);
                 });
@@ -725,9 +681,22 @@ AirPods Pro 2, 15, 院長
 
             clearCandidates() {
                 if (confirm('確定清空所有未中獎名單？(已中獎者會保留)')) {
-                    this.state.candidates = [];
-                    this.saveState();
-                    this.renderCandidatesList();
+                    if (confirm('此動作無法復原，確定要清空嗎？')) {
+                        this.state.candidates = [];
+                        this.saveState();
+                        this.renderCandidatesList();
+                    }
+                }
+            },
+
+
+
+
+            toggleSetup() {
+                const setup = document.getElementById('setup-area');
+                setup.classList.toggle('hidden');
+                if (!setup.classList.contains('hidden')) {
+                    setup.scrollIntoView({ behavior: 'smooth' });
                 }
             },
 
@@ -765,6 +734,12 @@ AirPods Pro 2, 15, 院長
                 if (this.state.isDrawing) {
                     btn.disabled = true;
                     btn.querySelector('span').textContent = "抽獎中...";
+                } else if (this.state.prizes.length === 0) {
+                    btn.disabled = true;
+                    btn.querySelector('span').textContent = "尚未設定獎項";
+                } else if (!this.state.currentPrizeId) {
+                    btn.disabled = true;
+                    btn.querySelector('span').textContent = "請選擇獎項";
                 } else if (!currentPrize || currentPrize.remaining <= 0) {
                     btn.disabled = true;
                     btn.querySelector('span').textContent = "本獎項已抽完";
@@ -782,43 +757,89 @@ AirPods Pro 2, 15, 院長
                 if (!list) return;
                 list.innerHTML = '';
 
-                this.state.prizes.forEach(p => {
+                // Active prizes
+                const activePrizes = this.state.prizes.filter(p => p.remaining > 0);
+                // Exhausted prizes
+                const exhaustedPrizes = this.state.prizes.filter(p => p.remaining <= 0);
+
+                const renderItem = (p, isExhausted) => {
                     const isSelected = p.id === this.state.currentPrizeId;
                     const el = document.createElement('div');
-                    el.className = `p-3 rounded border transition-colors flex flex-col gap-2 ${isSelected ? 'bg-gold-500/10 border-gold-400' : 'bg-gray-800 border-gray-700 hover:border-gold-400/50'}`;
+
+                    let bgClass = isSelected ? 'bg-gold-50 border-gold-400 shadow-md ring-1 ring-gold-400' : 'bg-[#F9F7F1] border-gold-200 hover:border-gold-300 shadow-sm';
+                    if (isExhausted) bgClass = 'bg-gray-200 border-gray-300 opacity-60 grayscale';
+
+                    el.id = `prize-item-${p.id}`;
+                    el.className = `p-4 rounded border transition-colors flex flex-col gap-2 ${bgClass}`;
 
                     // Main Info Row
                     const infoRow = document.createElement('div');
-                    infoRow.className = "flex justify-between items-center cursor-pointer";
-                    infoRow.onclick = (e) => {
-                        // Don't select if clicking buttons
-                        if (e.target.tagName === 'BUTTON') return;
-                        app.selectPrizeForDraw(p.id);
-                    };
+                    infoRow.className = `flex justify-between items-center ${isExhausted ? 'cursor-not-allowed' : 'cursor-pointer'}`;
+
+                    if (!isExhausted) {
+                        infoRow.onclick = (e) => {
+                            // Don't select if clicking buttons or inputs
+                            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+                            app.selectPrizeForDraw(p.id);
+                        };
+                    }
+
+                    const textColorClass = isSelected ? 'text-charcoal-900' : (isExhausted ? 'text-gray-500' : 'text-gray-800');
 
                     infoRow.innerHTML = `
                         <div>
-                            <div class="text-sm font-bold ${isSelected ? 'text-white' : 'text-gray-300'}">${p.name}</div>
-                            ${p.sponsor ? `<div class="text-xs text-gold-400/80 italic mb-0.5">❤️ 感謝 ${p.sponsor}</div>` : ''}
-                            <div class="text-xs text-gray-500">數量: <span id="qty-${p.id}">${p.qty}</span></div>
+                            <div class="text-lg font-bold ${textColorClass}">${p.name}</div>
+                            ${p.sponsor ? `<div class="text-sm text-gray-500 italic mb-1">❤️ 感謝 ${p.sponsor}</div>` : ''}
                         </div>
-                        ${isSelected ? '<span class="text-gold-400">●</span>' : ''}
+                        ${isSelected ? '<span class="text-gold-500 text-2xl">●</span>' : ''}
+                        ${isExhausted ? '<span class="text-xs font-bold text-gray-500 border border-gray-400 rounded px-2 py-1">已抽完</span>' : ''}
                     `;
                     el.appendChild(infoRow);
 
                     // Actions Row (Edit/Delete)
                     const actionsRow = document.createElement('div');
-                    actionsRow.className = "flex justify-end gap-2 border-t border-gray-700 pt-2 mt-1";
+                    actionsRow.className = "flex justify-between items-center border-t border-gold-200 pt-3 mt-2";
                     actionsRow.innerHTML = `
-                        <button onclick="app.adjustPrizeQty('${p.id}', 1)" class="text-xs bg-gray-700 px-2 py-1 rounded hover:bg-gray-600 text-white" title="增加數量">+</button>
-                        <button onclick="app.adjustPrizeQty('${p.id}', -1)" class="text-xs bg-gray-700 px-2 py-1 rounded hover:bg-gray-600 text-white" title="減少數量">-</button>
-                        <div class="flex-grow"></div>
-                        <button onclick="app.deletePrize('${p.id}')" class="text-xs text-red-400 hover:text-red-200 px-2 py-1">刪除</button>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-charcoal-900 font-bold">${isExhausted ? '新增數量:' : '剩餘數量:'}</span>
+                            <input type="number" min="${isExhausted ? '0' : '1'}" value="${isExhausted ? '0' : p.remaining}" onchange="app.setPrizeQty('${p.id}', this.value, ${isExhausted})" 
+                                class="w-16 border rounded px-2 py-1 text-charcoal-900 text-sm focus:outline-none focus:border-gold-500 text-center ${isExhausted ? 'border-gray-400 bg-white grayscale-0 opacity-100 pointer-events-auto' : 'border-gold-300'}">
+                        </div>
+                        <button onclick="app.deletePrize('${p.id}')" class="text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors ${isExhausted ? 'grayscale-0 opacity-100 pointer-events-auto' : ''}">刪除</button>
                     `;
                     el.appendChild(actionsRow);
 
-                    list.appendChild(el);
+                    return el;
+                };
+
+                activePrizes.forEach(p => {
+                    list.appendChild(renderItem(p, false));
                 });
+
+                const exhaustedWrapper = document.getElementById('exhausted-container-wrapper');
+                if (exhaustedWrapper) {
+                    if (exhaustedPrizes.length > 0) {
+                        exhaustedWrapper.classList.remove('hidden');
+                        exhaustedWrapper.innerHTML = `
+                            <div class="p-4">
+                                <details class="group border border-gray-300 p-3 rounded bg-gray-50 shadow-inner">
+                                    <summary class="text-sm text-gray-600 font-bold cursor-pointer hover:text-gray-800 select-none flex justify-between items-center">
+                                        <span>📦 已抽完的獎項 (${exhaustedPrizes.length})</span>
+                                        <span class="transform group-open:rotate-180 transition-transform">▼</span>
+                                    </summary>
+                                    <div class="flex flex-col gap-3 mt-4 max-h-[35vh] overflow-y-auto custom-scrollbar pr-2" id="exhausted-list"></div>
+                                </details>
+                            </div>
+                        `;
+                        const exhaustedList = exhaustedWrapper.querySelector('#exhausted-list');
+                        exhaustedPrizes.forEach(p => {
+                            exhaustedList.appendChild(renderItem(p, true));
+                        });
+                    } else {
+                        exhaustedWrapper.classList.add('hidden');
+                        exhaustedWrapper.innerHTML = '';
+                    }
+                }
             },
 
             renderHistory() {
@@ -834,18 +855,23 @@ AirPods Pro 2, 15, 院長
                 // Show latest first
                 [...this.state.winners].reverse().forEach(w => {
                     const el = document.createElement('div');
-                    el.className = 'glass-panel p-3 rounded border border-gray-700/50 flex justify-between items-center';
+                    el.className = 'bg-[#FDFBF7] p-4 rounded border border-gold-200 shadow-sm flex justify-between items-center hover:border-gold-300 transition-colors';
                     el.innerHTML = `
                         <div>
-                            <div class="text-gold-300 text-xs mb-1">${w.dept}</div>
-                            <div class="text-white font-bold">${w.name}</div>
-                            <div class="text-xs text-gray-400 mt-1">${w.prize}</div>
+                            <div class="text-gold-600 font-bold text-sm mb-1">${w.dept}</div>
+                            <div class="text-charcoal-900 font-bold text-lg flex items-baseline gap-2">${w.name} <span class="text-gray-400 text-sm font-normal">(${w.empId})</span></div>
+                            <div class="text-sm text-gray-600 mt-1 font-semibold">${w.prize}</div>
                         </div>
-                        <div class="text-xs text-gray-600">${new Date(w.timestamp).toLocaleTimeString()}</div>
+                        <div class="text-sm text-gray-400 font-mono">${new Date(w.timestamp).toLocaleTimeString()}</div>
                     `;
                     list.appendChild(el);
                 });
-            },
+
+            }
+
+            ,
+
+
 
             addPrize() {
                 const nameInput = document.getElementById('new-prize-name');
@@ -857,21 +883,28 @@ AirPods Pro 2, 15, 院長
                 const qty = parseInt(qtyInput.value);
 
                 if (name && qty > 0) {
-                    const newPrize = {
-                        id: Date.now(),
-                        name,
-                        sponsor,
-                        qty,
-                        remaining: qty
-                    };
-                    this.state.prizes.push(newPrize);
+                    const existingPrize = this.state.prizes.find(p => p.name === name && p.sponsor === sponsor);
 
-                    // Auto select if first
-                    if (this.state.prizes.length === 1) {
-                        this.selectPrizeForDraw(newPrize.id);
+                    if (existingPrize) {
+                        // 若已存在，則直接呼叫加碼邏輯
+                        app.setPrizeQty(existingPrize.id, qty, true);
                     } else {
-                        this.saveState();
-                        this.renderPrizes();
+                        const newPrize = {
+                            id: Date.now(),
+                            name,
+                            sponsor,
+                            qty,
+                            remaining: qty
+                        };
+                        // 新獎項放到陣列最上面
+                        this.state.prizes.unshift(newPrize);
+
+                        if (!this.state.currentPrizeId) {
+                            this.selectPrizeForDraw(newPrize.id);
+                        } else {
+                            this.saveState();
+                            this.renderPrizes();
+                        }
                     }
 
                     nameInput.value = '';
@@ -892,8 +925,9 @@ AirPods Pro 2, 15, 院長
                 this.state.prizes = this.state.prizes.filter(p => p.id != id);
 
                 // Select another if available
-                if (!this.state.currentPrizeId && this.state.prizes.length > 0) {
-                    this.selectPrizeForDraw(this.state.prizes[0].id);
+                const validPrizes = this.state.prizes.filter(p => p.remaining > 0);
+                if (!this.state.currentPrizeId && validPrizes.length > 0) {
+                    this.selectPrizeForDraw(validPrizes[0].id);
                 } else {
                     this.saveState();
                     this.renderPrizes();
@@ -901,30 +935,80 @@ AirPods Pro 2, 15, 院長
                 }
             },
 
-            adjustPrizeQty(id, delta) {
+            clearPrizes() {
+                if (confirm('確定清空所有獎項？')) {
+                    if (confirm('此動作無法復原，確定要清空嗎？')) {
+                        this.state.prizes = [];
+                        this.state.currentPrizeId = null;
+                        this.saveState();
+                        this.renderPrizes();
+                        this.updateUI();
+                        this.resetRollerDisplay(null);
+                    }
+                }
+            },
+
+            setPrizeQty(id, newQtyStr, isAddMode = false) {
                 const prize = this.state.prizes.find(p => p.id == id);
                 if (!prize) return;
 
-                const newQty = prize.qty + delta;
-                const newRemaining = prize.remaining + delta;
+                let newQty = parseInt(newQtyStr);
 
-                if (newQty < 1) return; // Min 1
-                if (newRemaining < 0) return alert("剩餘數量不能小於 0 (已抽出比新總數多)");
+                if (isAddMode) {
+                    // isAddMode means it was exhausted and the user is adding new qty
+                    if (isNaN(newQty) || newQty <= 0) {
+                        this.renderPrizes(); // reset input visually
+                        return;
+                    }
 
-                prize.qty = newQty;
-                prize.remaining = newRemaining;
+                    prize.qty += newQty;
+                    prize.remaining += newQty;
+
+                    // 將加碼恢復的獎項移到「最上面（陣列第一個）」並自動選中
+                    this.state.prizes = this.state.prizes.filter(p => p.id != id);
+                    this.state.prizes.unshift(prize);
+                    this.state.currentPrizeId = id;
+                    this.resetRollerDisplay(id);
+
+                    this.saveState();
+                    this.renderPrizes();
+                    this.updateUI();
+
+                    // Scroll to the newly activated prize item with a small delay to ensure DOM is ready
+                    setTimeout(() => {
+                        const el = document.getElementById(`prize-item-${id}`);
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            el.classList.add('ring-4', 'ring-gold-400', 'ring-opacity-50');
+                            setTimeout(() => el.classList.remove('ring-4', 'ring-gold-400', 'ring-opacity-50'), 1500);
+
+                            const inp = el.querySelector('input');
+                            if (inp) inp.focus();
+                        }
+                    }, 150);
+                    return;
+                }
+
+                if (isNaN(newQty) || newQty < 1) newQty = 1;
+
+                const diff = newQty - prize.remaining;
+                prize.qty += diff;
+                prize.remaining = newQty;
+
                 this.saveState();
                 this.renderPrizes();
                 this.updateUI();
             },
 
-            parsePrizesCSV() {
-                const text = document.getElementById('csv-input-prizes').value.trim();
+            parseCandidatesCSV(inputId = 'csv-input-candidates-panel') {
+                const text = document.getElementById(inputId).value.trim();
                 if (!text) return alert("請輸入內容");
-                this.parsePrizesCSVText(text, true); // true = confirm overwrite
+                this.parseCandidatesCSVText(text);
             },
+            parsePrizesCSV(inputId = 'csv-input-prizes') {
+                const text = document.getElementById(inputId).value.trim();
+                if (!text) return alert("請輸入內容");
 
-            parsePrizesCSVText(text, confirmOverwrite = true) {
                 const lines = text.split('\n');
                 const newPrizes = [];
 
@@ -960,23 +1044,47 @@ AirPods Pro 2, 15, 院長
                 });
 
                 if (newPrizes.length > 0) {
-                    if (confirmOverwrite && this.state.prizes.length > 0) {
-                        if (!confirm(`確定要匯入 ${newPrizes.length} 個獎項嗎？這將會取代現有的獎項列表。`)) {
-                            return;
+                    if (confirm(`確定要匯入 ${newPrizes.length} 個獎項嗎？`)) {
+                        [...newPrizes].reverse().forEach(np => {
+                            const existingPrize = this.state.prizes.find(p => p.name === np.name && p.sponsor === np.sponsor);
+                            if (existingPrize) {
+                                // 將剩餘與總數合併
+                                existingPrize.qty += np.qty;
+                                existingPrize.remaining += np.remaining;
+                                // 移到最上方
+                                this.state.prizes = this.state.prizes.filter(p => p.id != existingPrize.id);
+                                this.state.prizes.unshift(existingPrize);
+                            } else {
+                                this.state.prizes.unshift(np);
+                            }
+                        });
+
+                        this.saveState();
+                        this.renderPrizes();
+                        this.updateUI();
+                        // 確保至少有選中一個
+                        if (!this.state.currentPrizeId || !this.state.prizes.find(p => p.id == this.state.currentPrizeId && p.remaining > 0)) {
+                            const validPrizes = this.state.prizes.filter(p => p.remaining > 0);
+                            if (validPrizes.length > 0) {
+                                this.selectPrizeForDraw(validPrizes[0].id);
+                            } else {
+                                this.resetRollerDisplay(null);
+                            }
+                        } else {
+                            this.resetRollerDisplay(this.state.currentPrizeId);
                         }
+
+                        document.getElementById(inputId).value = '';
                     }
-                    this.state.prizes = newPrizes;
-                    this.state.currentPrizeId = newPrizes[0].id;
-                    this.saveState();
-                    this.renderPrizes();
-                    this.updateUI();
-                    this.resetRollerDisplay(this.state.currentPrizeId);
-                } else if (confirmOverwrite) {
-                    alert("無法解析資料。格式：獎項名稱, 數量, 贊助商(選填)");
+                } else {
+                    alert("無法解析資料。格式：獎項名稱, 數量");
                 }
             },
 
             selectPrizeForDraw(id) {
+                const prize = this.state.prizes.find(p => p.id == id);
+                if (prize && prize.remaining <= 0) return; // Disallow selecting exhausted
+
                 this.state.currentPrizeId = id;
                 this.saveState();
                 this.renderPrizes();
@@ -985,7 +1093,7 @@ AirPods Pro 2, 15, 院長
             },
 
             resetRollerDisplay(prizeId) {
-                const prize = this.state.prizes.find(p => p.id === prizeId);
+                const prize = this.state.prizes.find(p => p.id == prizeId);
                 const container = document.getElementById('roller-container');
                 const display = document.getElementById('current-prize-display');
 
@@ -1017,9 +1125,12 @@ AirPods Pro 2, 15, 院長
                     display.classList.remove('opacity-0');
                 }
 
-                const slots = prize ? Math.min(prize.remaining, 20) : 0;
+                // Determine slots to show (based on remaining or specific request)
+                // We show placeholders for ALL remaining winners of this prize
+                const slots = prize ? prize.remaining : 0;
 
                 if (!prize || slots === 0) {
+                    // Reset to initial generic state
                     container.innerHTML = `
                         <div id="roller-dept" class="text-gold-300 text-xl md:text-2xl font-light tracking-widest mb-4 uppercase">準備中</div>
                         <div id="roller-name" class="text-5xl md:text-7xl font-display font-bold text-white drop-shadow-2xl">等候開始</div>
@@ -1027,47 +1138,69 @@ AirPods Pro 2, 15, 院長
                     return;
                 }
 
-                if (slots <= 1) {
-                    // Classic Single View
-                    container.innerHTML = `
-                        <div id="roller-dept" class="text-gold-300 text-xl md:text-2xl font-light tracking-widest mb-4 uppercase">準備中...</div>
-                        <div id="roller-name" class="text-5xl md:text-7xl font-display font-bold text-white drop-shadow-2xl">請按開始</div>
-                    `;
+                // Flex View - Better centering and responsiveness
+                let cardClass = 'w-48 h-48'; // Default Square
+                let nameSize = 'text-2xl md:text-3xl';
+
+                // If 5 or fewer, let them take up proportional space but not exceed a certain max width to keep them nice
+                // using flex layout
+                if (slots <= 5) {
+                    cardClass = 'flex-1 min-w-[200px] max-w-[300px] aspect-square'; // Grow equally, wrap if needed
+                    nameSize = 'text-4xl md:text-5xl';
+                } else if (slots <= 10) {
+                    cardClass = 'w-36 h-36 md:w-48 md:h-48';
+                    nameSize = 'text-xl md:text-2xl';
+                } else if (slots <= 15) {
+                    cardClass = 'w-28 h-24 md:w-36 md:h-28';
+                    nameSize = 'text-lg md:text-xl';
                 } else {
-                    // Flex View
-                    let cardClass = 'w-48 h-48';
-                    let nameSize = 'text-2xl';
+                    cardClass = 'w-24 h-20 md:w-28 md:h-24';
+                    nameSize = 'text-sm md:text-base';
+                }
 
-                    if (slots > 8) { cardClass = 'w-40 h-32'; nameSize = 'text-xl'; }
-                    if (slots > 15) { cardClass = 'w-32 h-24'; nameSize = 'text-lg'; }
-                    if (slots > 30) { cardClass = 'w-24 h-20'; nameSize = 'text-sm'; }
+                // A max of 5 per row naturally happens if container max-w allows, or we force it with flex-basis logic
+                // The easiest is flex with wrap and center, and card constraints.
 
-                    let html = `<div class="flex flex-wrap justify-center gap-4 w-full px-4 overflow-y-auto max-h-[60vh] custom-scrollbar py-4">`;
+                let html = `<div class="flex flex-wrap justify-center items-center gap-4 w-full px-4 overflow-y-auto max-h-[60vh] custom-scrollbar py-4" style="max-width: 1400px; margin: 0 auto;">`;
 
-                    for (let i = 0; i < slots; i++) {
-                        html += `
-                            <div class="winner-grid-card relative group p-1 bg-gradient-to-br from-gold-400/20 to-transparent border border-gold-500/30 rounded-xl overflow-hidden flex flex-col items-center justify-center ${cardClass} transition-all duration-300 hover:scale-105 hover:bg-gold-500/10 shadow-lg" id="slot-${i}">
-                                <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-50"></div>
-                                <div class="text-gold-300/70 text-xs uppercase tracking-wider mb-2 font-light">
-                                    <span class="bg-black/40 px-2 py-0.5 rounded-full border border-gold-500/10">準備中</span>
-                                </div>
-                                <div class="text-white font-bold ${nameSize} truncate w-full text-center px-2 drop-shadow-md tracking-wide">
+                for (let i = 0; i < slots; i++) {
+                    html += `
+                        <div class="winner-grid-card relative group p-2 bg-gradient-to-br from-gold-400/20 to-transparent border border-gold-500/30 rounded-xl overflow-hidden flex flex-col items-center justify-center ${cardClass} transition-all duration-300 hover:scale-105 hover:bg-gold-500/10 shadow-lg" id="slot-${i}">
+                            <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-gold-400 to-transparent opacity-50"></div>
+                            <div class="text-gold-300/70 text-xs md:text-sm uppercase tracking-wider mb-2 font-light">
+                                <span class="slot-dept bg-black/40 px-3 py-1 rounded-full border border-gold-500/10">準備中</span>
+                            </div>
+                            <div class="flex items-baseline justify-center w-full px-2">
+                                <div class="slot-name text-white font-bold ${nameSize} truncate text-center drop-shadow-md tracking-wide">
                                     ???
                                 </div>
-                            </div>`;
-                    }
-
-                    html += `</div>`;
-                    container.innerHTML = html;
+                            </div>
+                        </div>`;
                 }
-            },
+
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+
+            ,
 
             startDraw() {
                 if (this.state.isDrawing) return;
+
+                const panelIds = ['panel-candidates', 'panel-history', 'panel-prizes'];
+                const isAnyPanelOpen = panelIds.some(id => {
+                    const el = document.getElementById(id);
+                    return el && !el.classList.contains('translate-x-full');
+                });
+                if (isAnyPanelOpen) return;
+
                 const prize = this.state.prizes.find(p => p.id === this.state.currentPrizeId);
 
+                // Also respect the UI disabled state
+                const btn = document.getElementById('draw-btn');
+                if (btn && btn.disabled) return;
+
                 if (!prize || prize.remaining <= 0 || this.state.candidates.length === 0) {
-                    alert("無法抽獎：請確認獎項名額或參加人數。");
                     return;
                 }
 
@@ -1080,7 +1213,7 @@ AirPods Pro 2, 15, 院長
                 }
 
                 this.state.isDrawing = true;
-                document.getElementById('draw-btn').disabled = true;
+                this.updateUI();
 
                 // Animate
                 const container = document.getElementById('roller-container');
@@ -1092,25 +1225,16 @@ AirPods Pro 2, 15, 院長
 
                 // Animation Loop
                 const roll = () => {
-                    if (drawCount === 1) {
-                        // Single Mode Animation
+                    // Grid Mode Animation
+                    for (let i = 0; i < drawCount; i++) {
                         const randomIdx = Math.floor(Math.random() * this.state.candidates.length);
                         const c = this.state.candidates[randomIdx];
-                        document.getElementById('roller-name').textContent = c.name;
-                        document.getElementById('roller-dept').textContent = c.dept;
-                    } else {
 
-                        // Grid Mode Animation
-                        for (let i = 0; i < drawCount; i++) {
-                            const randomIdx = Math.floor(Math.random() * this.state.candidates.length);
-                            const c = this.state.candidates[randomIdx];
+                        const slot = document.getElementById(`slot-${i}`);
 
-                            const slot = document.getElementById(`slot-${i}`);
-
-                            if (slot) {
-                                slot.querySelector('div:last-child').textContent = c.name;
-                                slot.querySelector('div:first-child').textContent = c.dept;
-                            }
+                        if (slot) {
+                            slot.querySelector('.slot-name').textContent = c.name;
+                            slot.querySelector('.slot-dept').textContent = c.dept;
                         }
                     }
 
@@ -1119,12 +1243,16 @@ AirPods Pro 2, 15, 院長
                     if (duration < maxDuration) {
                         if (duration > maxDuration * 0.7) speed += 10;
                         setTimeout(roll, speed);
-                    } else {
+                    }
+
+                    else {
                         this.finalizeBatchDraw(drawCount);
                     }
                 };
                 roll();
-            },
+            }
+
+            ,
 
             finalizeBatchDraw(count) {
                 const container = document.getElementById('roller-container');
@@ -1147,7 +1275,9 @@ AirPods Pro 2, 15, 院長
                         ...winner,
                         prize: prizeName,
                         timestamp: new Date().toISOString()
-                    };
+                    }
+
+                        ;
                     newWinners.push(winRecord);
                     this.state.winners.push(winRecord);
                     this.state.prizes[prizeIndex].remaining--;
@@ -1155,28 +1285,20 @@ AirPods Pro 2, 15, 院長
 
                 this.saveState();
 
-                // Update UI Slots to final winners
-                if (count === 1) {
-                    // Single UI
-                    const w = newWinners[0];
-                    document.getElementById('roller-name').textContent = w.name;
-                    document.getElementById('roller-dept').textContent = w.dept;
-                    this.showWinnerScreen(newWinners);
-                } else {
+                // Grid UI
+                newWinners.forEach((w, idx) => {
+                    const slot = document.getElementById(`slot-${idx}`);
+                    if (slot) {
+                        slot.querySelector('.slot-name').textContent = w.name;
+                        slot.querySelector('.slot-dept').textContent = w.dept;
+                        slot.classList.add('active'); // Gold highlight
+                    }
+                });
+                // Show overlay list
+                this.showWinnerScreen(newWinners);
+            }
 
-                    // Grid UI
-                    newWinners.forEach((w, idx) => {
-                        const slot = document.getElementById(`slot-${idx}`);
-                        if (slot) {
-                            slot.querySelector('div:last-child').textContent = w.name;
-                            slot.querySelector('div:first-child').textContent = w.dept;
-                            slot.classList.add('active'); // Gold highlight
-                        }
-                    });
-                    // Show overlay list
-                    this.showWinnerScreen(newWinners);
-                }
-            },
+            ,
 
             showWinnerScreen(winnersList) {
                 const overlay = document.getElementById('winner-overlay');
@@ -1187,34 +1309,42 @@ AirPods Pro 2, 15, 院長
                     const w = winnersList[0];
 
                     card.innerHTML = `
-                        <h2 class="text-gold-400 text-2xl uppercase tracking-[0.5em] mb-8 font-light">恭喜中獎</h2>
-                        <div class="mb-8">
-                            <span class="inline-block px-4 py-1 rounded-full bg-gold-500/20 text-gold-300 border border-gold-500/30 text-sm tracking-widest uppercase mb-4">${w.dept}</span>
-                            <h1 class="text-6xl md:text-8xl font-display font-bold text-white mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">${w.name}</h1>
+                        <h2 class="text-gold-400 text-2xl md:text-3xl uppercase tracking-[0.5em] mb-8 font-light">恭喜中獎</h2>
+                        <div class="mb-8 flex flex-col items-center">
+                            <span class="inline-block px-6 py-2 rounded-full bg-gold-500/20 text-gold-300 border border-gold-500/30 text-xl md:text-2xl tracking-widest uppercase mb-4">${w.dept}</span>
+                            <div class="flex items-baseline justify-center whitespace-nowrap">
+                                <h1 class="text-7xl md:text-[8rem] font-display font-bold text-white mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">${w.name}</h1>
+                                <span class="text-3xl md:text-5xl text-gray-400 ml-4 font-sans font-normal drop-shadow-md">(${w.empId})</span>
+                            </div>
                         </div>
                         <div class="flex flex-col items-center gap-4">
                             <div class="text-gray-400 text-sm uppercase tracking-widest">獲得獎項</div>
-                            <div class="text-2xl text-gold-100 font-serif italic">${w.prize}</div>
+                            <div class="text-2xl md:text-4xl text-gold-100 font-serif italic">${w.prize}</div>
                         </div>
                         <button onclick="app.closeWinnerOverlay()" class="mt-12 btn-gold px-8 py-3 rounded-full text-lg shadow-lg hover:shadow-gold-500/50">繼續</button>
                     `;
-                } else {
+                }
+
+                else {
                     // Multiple List View
                     const prizeName = winnersList[0].prize;
-                    let listHtml = `<div class="grid grid-cols-2 dm:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar p-2">`;
+                    let listHtml = `<div class="grid grid-cols-2 md:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto custom-scrollbar p-4">`;
                     winnersList.forEach(w => {
                         listHtml += `
-                            <div class="bg-gray-800/80 p-3 rounded border border-gold-500/30">
-                                <div class="text-xs text-gold-300 mb-1">${w.dept}</div>
-                                <div class="text-xl font-bold text-white">${w.name}</div>
+                            <div class="bg-gray-800/80 p-5 rounded-xl border border-gold-500/30 shadow-lg flex flex-col items-center text-center transition-transform hover:scale-105">
+                                <div class="text-base md:text-lg text-gold-300 mb-2 truncate w-full">${w.dept}</div>
+                                <div class="flex items-baseline justify-center whitespace-nowrap gap-2 w-full overflow-hidden">
+                                    <div class="text-3xl md:text-4xl font-bold text-white truncate">${w.name}</div>
+                                    <div class="text-base md:text-lg text-gray-400 font-mono flex-shrink-0">(${w.empId})</div>
+                                </div>
                             </div>
                         `;
                     });
                     listHtml += `</div>`;
 
                     card.innerHTML = `
-                         <h2 class="text-gold-400 text-2xl uppercase tracking-[0.5em] mb-4 font-light">恭喜中獎 (${winnersList.length} 位)</h2>
-                         <div class="text-xl text-gold-100 font-serif italic mb-6">${prizeName}</div>
+                         <h2 class="text-gold-400 text-2xl md:text-3xl uppercase tracking-[0.5em] mb-4 font-light">恭喜中獎 (${winnersList.length} 位)</h2>
+                         <div class="text-2xl md:text-4xl text-gold-100 font-serif italic mb-8">${prizeName}</div>
                          ${listHtml}
                          <button onclick="app.closeWinnerOverlay()" class="mt-8 btn-gold px-8 py-3 rounded-full text-lg shadow-lg hover:shadow-gold-500/50">繼續</button>
                     `;
@@ -1230,9 +1360,26 @@ AirPods Pro 2, 15, 院長
 
                 this.state.isDrawing = false;
                 this.updateUI();
-            },
+            }
 
-            closeWinnerOverlay() {
+            ,
+
+            async closeWinnerOverlay() {
+                // 必須在點擊繼續的同步事件中觸發 File System Access API 以取得授權
+                if (window.showSaveFilePicker && !this.fileHandle) {
+                    try {
+                        this.fileHandle = await window.showSaveFilePicker({
+                            suggestedName: "幸運抽獎_中獎名單.xlsx",
+                            types: [{
+                                description: 'Excel Workbook',
+                                accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+                            }]
+                        });
+                    } catch (e) {
+                        console.log("使用者取消選擇或不支援檔案選擇器", e);
+                    }
+                }
+
                 const overlay = document.getElementById('winner-overlay');
                 overlay.classList.add('opacity-0');
                 setTimeout(() => {
@@ -1242,17 +1389,26 @@ AirPods Pro 2, 15, 院長
                     if (this.state.currentPrizeId) {
                         const currentPrize = this.state.prizes.find(p => p.id === this.state.currentPrizeId);
                         if (currentPrize && currentPrize.remaining <= 0) {
-                            // Delete the prize
-                            this.state.prizes = this.state.prizes.filter(p => p.id !== this.state.currentPrizeId);
+                            // Don't delete the prize, just clear the current selection
                             this.state.currentPrizeId = null;
 
-                            // Reset to Ready Screen
-                            this.resetRollerDisplay();
+                            // Reset to Ready Screen with the next available prize if any
+                            const nextPrize = this.state.prizes.find(p => p.remaining > 0);
+                            if (nextPrize) {
+                                this.state.currentPrizeId = nextPrize.id;
+                                this.resetRollerDisplay(this.state.currentPrizeId);
+                            } else {
+                                this.resetRollerDisplay();
+                            }
                             this.saveState();
                             this.renderPrizes();
-                            this.updateUI();
                         }
                     }
+                    this.state.isDrawing = false;
+                    this.updateUI();
+
+                    // 自動匯出結果到 Excel
+                    this.exportWinners(true);
                 }, 500);
             },
 
@@ -1262,87 +1418,158 @@ AirPods Pro 2, 15, 院長
 
                 (function frame() {
                     confetti({
+
                         particleCount: 5,
                         angle: 60,
                         spread: 55,
                         origin: {
                             x: 0
                         },
+                        zIndex: 9999,
                         colors: ['#D4AF37', '#F9F1D8', '#FFFFFF']
                     });
 
                     confetti({
+
                         particleCount: 5,
                         angle: 120,
                         spread: 55,
                         origin: {
                             x: 1
                         },
+                        zIndex: 9999,
                         colors: ['#D4AF37', '#F9F1D8', '#FFFFFF']
                     });
 
                     if (Date.now() < end) {
                         requestAnimationFrame(frame);
                     }
-                }());
-            },
+                }
+
+                    ());
+            }
+
+            ,
 
             confirmReset() {
-                if (confirm("您確定要重置並還原為「預設測試資料」嗎？\n(注意：目前的操作紀錄將會消失)")) {
-                    
-                    // 1. Reset State
-                    this.state = {
-                        candidates: [],
-                        winners: [],
-                        prizes: [],
-                        currentPrizeId: null,
-                        isDrawing: false
-                    };
-
-                    // 2. Load Defaults
-                    console.log("Resetting to defaults...");
-                    this.parseCandidatesCSVText(DEFAULT_CANDIDATES_CSV, false); // false = no alert
-                    this.parsePrizesCSVText(DEFAULT_PRIZES_CSV, false); // false = no alert
-
-                    // 3. Set initial prize
-                    if (this.state.prizes.length > 0) {
-                        this.state.currentPrizeId = this.state.prizes[0].id;
+                if (confirm("您確定要重置所有資料嗎？這將會清除所有參加者、中獎紀錄與獎項設定。")) {
+                    if (confirm("請再次確認？此動作無法復原。")) {
+                        localStorage.removeItem('luckyDrawState');
+                        location.reload();
                     }
-
-                    // 4. Reset Textareas (visual)
-                    const candInput = document.getElementById('csv-input-candidates-panel');
-                    if (candInput) candInput.value = DEFAULT_CANDIDATES_CSV;
-
-                    const prizeInput = document.getElementById('csv-input-prizes');
-                    if (prizeInput) prizeInput.value = DEFAULT_PRIZES_CSV;
-
-                    // 5. Save and Render
-                    this.saveState();
-                    this.updateUI();
-                    this.renderPrizes();
-                    this.renderCandidatesList();
-                    this.renderHistory();
-                    this.resetRollerDisplay(this.state.currentPrizeId);
-                    
-                    alert("已還原預設資料！");
                 }
-            },
-
-            exportWinners() {
-                if (this.state.winners.length === 0) return alert("沒有中獎者可匯出。");
-
-                const ws = XLSX.utils.json_to_sheet(this.state.winners);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Winners");
-                XLSX.writeFile(wb, "LuckyDraw_Winners.xlsx");
             }
-        };
 
+            ,
+
+            async exportWinners(isAuto = false) {
+                if (this.state.winners.length === 0) {
+                    if (!isAuto) alert("沒有中獎者可匯出。");
+                    // 為了測試寫入授權，如果是自動且沒中獎者，也可以產生一份空的
+                    if (!isAuto) return;
+                }
+
+                const wb = XLSX.utils.book_new();
+
+                // Group winners by prize
+                const groupedWinners = {};
+                this.state.winners.forEach(w => {
+                    if (!groupedWinners[w.prize]) {
+                        groupedWinners[w.prize] = [];
+                    }
+                    groupedWinners[w.prize].push({
+                        '姓名': w.name,
+                        '員工證號': w.empId,
+                        '部門': w.dept,
+                        '獎項': w.prize,
+                        '抽出時間': new Date(w.timestamp).toLocaleString()
+                    });
+                });
+
+                // Add a sheet for each prize group
+                Object.keys(groupedWinners).forEach(prizeName => {
+                    const ws = XLSX.utils.json_to_sheet(groupedWinners[prizeName]);
+                    // Sheet names cannot exceed 31 chars and shouldn't contain certain special chars
+                    let safeSheetName = prizeName.replace(/[\\/?*\[\]:]/g, '_').substring(0, 31);
+                    if (!safeSheetName) safeSheetName = "未命名獎項";
+                    XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
+                });
+
+                // Add a master sheet at the end
+                const allFormatted = this.state.winners.map(w => ({
+                    '姓名': w.name,
+                    '員工證號': w.empId,
+                    '部門': w.dept,
+                    '獎項': w.prize,
+                    '抽出時間': new Date(w.timestamp).toLocaleString()
+                }));
+                const allWs = XLSX.utils.json_to_sheet(allFormatted);
+                XLSX.utils.book_append_sheet(wb, allWs, "全部中獎名單總表");
+
+                // 若有授權過檔案覆寫，直接更新同一個檔案
+                if (this.fileHandle) {
+                    try {
+                        const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                        const writable = await this.fileHandle.createWritable();
+                        await writable.write(buffer);
+                        await writable.close();
+                        console.log("自動覆寫 Excel 檔案成功");
+                        return; // 如果成功寫入，就不再觸發傳統下載
+                    } catch (e) {
+                        console.error("覆寫檔案失敗，改回使用傳統下載...", e);
+                    }
+                }
+
+                // 若不支援、被拒絕或覆寫失敗，回退至傳統下載 (注意瀏覽器可能封鎖非互動腳本下載)
+                XLSX.writeFile(wb, "幸運抽獎_中獎名單.xlsx");
+            }
+
+            ,
+
+            async requestSaveAccess() {
+                if (window.showSaveFilePicker) {
+                    try {
+                        this.fileHandle = await window.showSaveFilePicker({
+                            suggestedName: "幸運抽獎_中獎名單.xlsx",
+                            types: [{
+                                description: 'Excel Workbook',
+                                accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+                            }]
+                        });
+                        alert("✅ 存檔授權成功！\n之後抽獎結束按下繼續時，會自動覆寫同一個檔案。");
+
+                        const btn = document.getElementById('auth-btn');
+                        if (btn) btn.classList.add('hidden');
+
+                        // 順便進行一次寫入測試，建立出實體檔案
+                        await this.exportWinners(true);
+                    } catch (e) {
+                        console.log("使用者取消選擇或不支援檔案選擇器", e);
+                    }
+                } else {
+                    alert("您的瀏覽器不支援自動覆寫授權功能。");
+                }
+            }
+        }
+
+            ;
         // 監聽鍵盤的邏輯
         window.addEventListener('keydown', (e) => {
             // 監聽 Enter 鍵（對應 ESP32 的發送指令）
             if (e.key === 'Enter') {
-                if (!app.state.isDrawing) {
+                if (e.repeat) return;
+
+                // 檢查是否右側面板開啟，或者中獎畫面開啟
+                const panelIds = ['panel-candidates', 'panel-history', 'panel-prizes'];
+                const panelsOpen = panelIds.some(id => {
+                    const el = document.getElementById(id);
+                    return el && !el.classList.contains('translate-x-full');
+                });
+                const overlayOpen = document.getElementById('winner-overlay') && !document.getElementById('winner-overlay').classList.contains('hidden');
+                const btn = document.getElementById('draw-btn');
+                const isBtnDisabled = btn ? btn.disabled : false;
+
+                if (!app.state.isDrawing && !panelsOpen && !overlayOpen && !isBtnDisabled) {
                     console.log("實體按鈕觸發！");
                     app.startDraw();
                 }
