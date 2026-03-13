@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>榮光煥發抽獎趣 - 中獎名單</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Inter:wght@100..900&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#F9F1D8',
+                            300: '#E6C986',
+                            400: '#D4AF37',
+                            500: '#C5A028',
+                            600: '#B08D1A',
+                        },
+                        charcoal: {
+                            800: '#2D2D2D',
+                            900: '#1A1A1A',
+                            950: '#0F0F0F'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Cinzel', 'serif'],
+                        body: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.6s ease-out forwards'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            color: #F9F1D8;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1A1A1A;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(to right, #F9F1D8, #D4AF37, #F9F1D8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: textShimmer 5s linear infinite;
+        }
+
+        @keyframes textShimmer {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .prize-section {
+            background: rgba(45, 45, 45, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            scroll-margin-top: 100px;
+        }
+
+        .winner-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .winner-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+            opacity: 0.5;
+        }
+
+        .winner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.2);
+            border-color: rgba(212, 175, 55, 0.6);
+            background: linear-gradient(145deg, rgba(212, 175, 55, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+        }
+
+        .tab-btn {
+            background: rgba(45, 45, 45, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #ccc;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            border-color: #D4AF37;
+            color: #F9F1D8;
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #D4AF37 0%, #B08D1A 100%);
+            border-color: #F9F1D8;
+            color: #0F0F0F;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Sticky Header Area -->
+    <div
+        class="sticky top-0 z-50 bg-charcoal-950/90 backdrop-blur-md border-b border-gold-400/20 shadow-lg pt-6 pb-4 px-4 md:px-8">
+        <header
+            class="text-center max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div class="flex-shrink-0 text-left">
+                <h1 class="text-2xl md:text-3xl font-display font-bold gold-gradient-text tracking-[0.1em] mb-1"> 🏆
+                    中獎名單
+                </h1>
+                <p class="text-gold-300/80 text-base md:text-lg tracking-widest font-medium mt-1">榮光煥發抽獎趣</p>
+            </div>
+
+            <!-- Search & Filters -->
+            <div class="flex-grow w-full max-w-2xl flex flex-col gap-3">
+                <input type="text" id="search-input" placeholder="🔍  搜尋姓名、部門或員工證號..."
+                    class="w-full bg-charcoal-800/80 border-2 border-gold-400/40 rounded-xl py-3 px-5 text-white text-lg font-medium placeholder-white focus:outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-400/50 transition-all shadow-inner">
+
+                <!-- Dropdown Select -->
+                <select id="prize-select" onchange="setTab(this.value)"
+                    class="w-full bg-charcoal-800/90 border-2 border-gold-400/40 rounded-xl py-3 pl-5 pr-10 text-gold-100 text-lg font-bold focus:outline-none focus:border-gold-400 focus:ring-2 focus:ring-gold-400/50 shadow-inner cursor-pointer tracking-wide">
+                    <!-- Options injected here -->
+                </select>
+            </div>
+
+            <!-- Stats -->
+            <div
+                class="hidden lg:flex flex-shrink-0 flex-col items-end gap-2 text-sm text-gray-300 font-mono bg-charcoal-900/60 p-3 px-4 rounded-xl border border-gold-400/20 shadow-md">
+                <div>累積獎項：<span id="total-prizes" class="text-gold-400 font-bold ml-1 text-xl">0</span></div>
+                <div>幸運得主：<span id="total-winners" class="text-gold-400 font-bold ml-1 text-xl">0</span></div>
+            </div>
+        </header>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow w-full p-4 md:p-8 space-y-12">
+        <div class="max-w-7xl mx-auto" id="sections-wrapper">
+            <!-- JS will inject prize groups here -->
+            <div class="text-center text-gray-500 py-20 text-xl tracking-widest animate-fade-in">
+                載入中...
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-5 mt-auto">
+        <p class="text-gold-300 text-sm tracking-[0.2em] font-bold drop-shadow">臺北榮民總醫院 資訊室 製作</p>
+    </footer>
+
+    <script>
+        let lastWinnersCount = 0;
+        let allWinners = [];
+        let groupedPrizes = {};
+        let prizeOrder = [];
+
+        // State
+        let currentTab = 'All';
+        let searchTerm = '';
+
+        const searchInput = document.getElementById('search-input');
+
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.trim().toLowerCase();
+            renderUI();
+        });
+
+        let lastDataString = '';
+
+        function loadData() {
+            const savedData = localStorage.getItem('luckyDrawState');
+            if (!savedData) return;
+
+            try {
+                const state = JSON.parse(savedData);
+                const newWinners = state.winners || [];
+
+                // 防止畫面無意義的閃爍：如果資料沒變就提早結束
+                const dataStr = JSON.stringify(newWinners);
+                if (dataStr === lastDataString) return;
+                lastDataString = dataStr;
+
+                allWinners = newWinners;
+
+                // Fire confetti if new winners added
+                if (allWinners.length > lastWinnersCount && lastWinnersCount !== 0) {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#D4AF37', '#F9F1D8', '#FFFFFF']
+                    });
+                }
+                lastWinnersCount = allWinners.length;
+
+                // Restructure data
+                groupedPrizes = {};
+                prizeOrder = [];
+
+                // Reverse so newest is first
+                const reversedWinners = [...allWinners].reverse();
+
+                reversedWinners.forEach(w => {
+                    if (!groupedPrizes[w.prize]) {
+                        groupedPrizes[w.prize] = [];
+                        prizeOrder.push(w.prize);
+                    }
+                    groupedPrizes[w.prize].push(w);
+                });
+
+                document.getElementById('total-prizes').textContent = prizeOrder.length;
+                document.getElementById('total-winners').textContent = allWinners.length;
+
+                renderUI();
+
+            } catch (e) {
+                console.error("Error parsing lucky draw state", e);
+            }
+        }
+
+        function setTab(tabName) {
+            currentTab = tabName;
+            renderUI();
+
+            // Scroll to top when changing tabs for better UX
+            document.getElementById('winners-container').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderUI() {
+            renderTabs();
+            renderList();
+        }
+
+        function renderTabs() {
+            const selectContainer = document.getElementById('prize-select');
+            let optionsHtml = `<option value="All" ${currentTab === 'All' ? 'selected' : ''}>全部顯示 (共 ${allWinners.length} 名)</option>`;
+
+            prizeOrder.forEach(prizeName => {
+                optionsHtml += `<option value="${prizeName}" ${currentTab === prizeName ? 'selected' : ''}>${prizeName} (共 ${groupedPrizes[prizeName].length} 名)</option>`;
+            });
+            selectContainer.innerHTML = optionsHtml;
+        }
+
+        function renderList() {
+            const wrapper = document.getElementById('sections-wrapper');
+
+            if (allWinners.length === 0) {
+                wrapper.innerHTML = `
+                    <div class="text-center text-gray-500 py-20 text-xl tracking-widest animate-fade-in">
+                        目前尚未抽出任何獎項...
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            let hasResults = false;
+
+            prizeOrder.forEach((prizeName, index) => {
+                // Filter by Tab
+                if (currentTab !== 'All' && currentTab !== prizeName) return;
+
+                const group = groupedPrizes[prizeName];
+
+                // Filter by Search Query
+                const filteredGroup = group.filter(w => {
+                    if (!searchTerm) return true;
+                    return (w.name.toLowerCase().includes(searchTerm) ||
+                        w.dept.toLowerCase().includes(searchTerm) ||
+                        w.empId.toLowerCase().includes(searchTerm));
+                });
+
+                if (filteredGroup.length === 0) return; // Hide section if no matches
+
+                hasResults = true;
+                const delay = index * 0.05;
+
+                let cardsHtml = '';
+                filteredGroup.forEach(w => {
+                    // Highlight logic (basic)
+                    let nameDisplay = w.name;
+                    let deptDisplay = w.dept;
+                    let empIdDisplay = w.empId;
+
+                    // Support basic highlight matching
+                    if (searchTerm) {
+                        const regex = new RegExp(`(${searchTerm})`, 'gi');
+                        const highlight = '<span class="bg-yellow-500/40 text-yellow-100">$1</span>';
+                        nameDisplay = nameDisplay.replace(regex, highlight);
+                        deptDisplay = deptDisplay.replace(regex, highlight);
+                        empIdDisplay = empIdDisplay.replace(regex, highlight);
+                    }
+
+                    cardsHtml += `
+                        <div class="winner-card p-5 rounded-xl flex flex-col items-center justify-center text-center">
+                            <span class="text-gold-500 text-xs font-mono tracking-widest mb-3 bg-gold-500/10 px-3 py-1 rounded-full border border-gold-500/20 uppercase">
+                                ${deptDisplay}
+                            </span>
+                            <h3 class="text-2xl font-display font-bold text-white mb-2 drop-shadow-md">
+                                ${nameDisplay}
+                            </h3>
+                            <p class="text-gray-400 font-mono text-xs group-hover:text-gold-300 transition-colors">
+                                (${empIdDisplay})
+                            </p>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <section class="prize-section rounded-2xl p-6 md:p-8 animate-fade-in mb-10" id="prize-${prizeName}">
+                        <div class="flex flex-col md:flex-row md:items-end justify-between border-b border-gold-400/20 pb-4 mb-6">
+                            <h2 class="text-2xl md:text-3xl font-serif text-gold-300 italic tracking-wider flex items-center gap-3">
+                                <span class="text-3xl">🎁</span> ${prizeName}
+                            </h2>
+                            <div class="text-gray-400 text-sm tracking-widest mt-2 md:mt-0 uppercase">
+                                本區符合：${filteredGroup.length} 名
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            ${cardsHtml}
+                        </div>
+                    </section>
+                `;
+            });
+
+            if (!hasResults && searchTerm) {
+                html = `
+                    <div class="text-center text-gray-500 py-20 text-xl tracking-widest animate-fade-in flex flex-col justify-center items-center gap-4">
+                        <span class="text-4xl">📭</span>
+                        <p>找不到符合條件的中獎者</p>
+                        <button onclick="document.getElementById('search-input').value=''; searchTerm=''; renderUI();" class="mt-4 px-6 py-2 rounded-full border border-gold-400/50 text-gold-300 hover:bg-gold-400/10 transition-colors text-sm">清除搜尋</button>
+                    </div>
+                `;
+            }
+
+            wrapper.innerHTML = html;
+        }
+
+        // Initial setup
+        loadData();
+
+        // Sync from localStorage changes
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'luckyDrawState') {
+                loadData();
+            }
+        });
+
+        // Polling loop
+        setInterval(loadData, 2000);
+
+    </script>
+</body>
+
+</html>
